@@ -1,0 +1,1183 @@
+{
+  "pipeline_init_ms": 0.001601874828338623,
+  "limitations": [
+    "The CSV files contain no human-reviewed target phonemes.",
+    "Language agreement uses each corpus language as a proxy label; legitimate code-switches count as mismatches.",
+    "OOV coverage and output invariants do not prove pronunciation correctness."
+  ],
+  "reports": [
+    {
+      "corpus": "libritts100",
+      "path": "/server/tts-donglao/DATASET/raw/libritts100/metadata.csv",
+      "expected_language": "en",
+      "sentences": 32215,
+      "characters": 3093442,
+      "word_tokens": 573050,
+      "expected_language_tokens": 566012,
+      "language_agreement": 0.9877183491841899,
+      "dominant_sentence_agreement": 0.9556417817786745,
+      "dictionary_tokens": 555899,
+      "rule_tokens": 7038,
+      "oov_tokens": 10113,
+      "oov_rate": 0.01764767472297356,
+      "empty_phone_tokens": 0,
+      "malformed_phone_tokens": 0,
+      "invalid_punctuation_outputs": 0,
+      "non_idempotent_normalizations": 3,
+      "changed_by_normalization": 10001,
+      "analysis_seconds": 1.9416198823601007,
+      "analysis_sentences_per_second": 16591.816087524632,
+      "latency_p50_ms": 0.026401,
+      "latency_p95_ms": 0.072632,
+      "latency_p99_ms": 0.098392,
+      "batch_seconds": 0.059103215113282204,
+      "batch_characters_per_second": 52339656.88788416,
+      "rss_peak_mb": 74.25,
+      "source_counts": {
+        "dictionary": 555899,
+        "oov": 10113,
+        "rules": 7038
+      },
+      "detected_language_counts": {
+        "en": 566012,
+        "vi": 7038
+      },
+      "top_oov": [
+        [
+          "dont",
+          547
+        ],
+        [
+          "didnt",
+          191
+        ],
+        [
+          "thats",
+          187
+        ],
+        [
+          "ive",
+          111
+        ],
+        [
+          "hes",
+          96
+        ],
+        [
+          "youre",
+          94
+        ],
+        [
+          "couldnt",
+          83
+        ],
+        [
+          "theres",
+          81
+        ],
+        [
+          "isnt",
+          79
+        ],
+        [
+          "wasnt",
+          71
+        ],
+        [
+          "youll",
+          63
+        ],
+        [
+          "wouldnt",
+          61
+        ],
+        [
+          "coronel",
+          60
+        ],
+        [
+          "oclock",
+          56
+        ],
+        [
+          "doesnt",
+          53
+        ],
+        [
+          "shes",
+          50
+        ],
+        [
+          "eo",
+          46
+        ],
+        [
+          "youve",
+          44
+        ],
+        [
+          "florina",
+          44
+        ],
+        [
+          "havent",
+          40
+        ],
+        [
+          "dantes",
+          40
+        ],
+        [
+          "hadnt",
+          39
+        ],
+        [
+          "lukashka",
+          38
+        ],
+        [
+          "josiana",
+          36
+        ],
+        [
+          "gi",
+          34
+        ],
+        [
+          "weve",
+          34
+        ],
+        [
+          "gwynplaine",
+          33
+        ],
+        [
+          "theyre",
+          30
+        ],
+        [
+          "olenin",
+          30
+        ],
+        [
+          "cristel",
+          30
+        ]
+      ],
+      "top_language_mismatches": [
+        [
+          "do",
+          1185
+        ],
+        [
+          "ây",
+          540
+        ],
+        [
+          "âych",
+          476
+        ],
+        [
+          "âu",
+          414
+        ],
+        [
+          "ét",
+          364
+        ],
+        [
+          "đi",
+          212
+        ],
+        [
+          "eo",
+          181
+        ],
+        [
+          "ép",
+          141
+        ],
+        [
+          "diu",
+          124
+        ],
+        [
+          "đắp-bồ-diu",
+          109
+        ],
+        [
+          "met",
+          109
+        ],
+        [
+          "bi",
+          87
+        ],
+        [
+          "gi",
+          64
+        ],
+        [
+          "cây",
+          52
+        ],
+        [
+          "bay",
+          34
+        ],
+        [
+          "dont",
+          32
+        ],
+        [
+          "nay",
+          19
+        ],
+        [
+          "hay",
+          16
+        ],
+        [
+          "good-natured",
+          16
+        ],
+        [
+          "kiu",
+          14
+        ],
+        [
+          "didnt",
+          14
+        ],
+        [
+          "i-i",
+          14
+        ],
+        [
+          "oclock",
+          11
+        ],
+        [
+          "giây",
+          10
+        ],
+        [
+          "den",
+          9
+        ],
+        [
+          "la",
+          9
+        ],
+        [
+          "wouldnt",
+          7
+        ],
+        [
+          "le",
+          7
+        ],
+        [
+          "couldnt",
+          7
+        ],
+        [
+          "ích",
+          6
+        ]
+      ],
+      "oov_examples": [
+        {
+          "text": "One was old, with silver hairs and a countenance beaming with benevolence and love; the younger was slight and graceful in his figure, and his features were moulded with the finest symmetry, yet his eyes and attitude expressed the utmost sadness and despondency.",
+          "normalized": "One was old, with silver hairs and a countenance beaming with benevolence and love, the younger was slight and graceful in his figure, and his features were moulded with the finest symmetry, yet his eyes and attitude expressed the utmost sadness and despondency.",
+          "token": "moulded",
+          "phonemes": "maʊldɛd"
+        },
+        {
+          "text": "Before I had quitted your apartment, on a sensation of cold, I had covered myself with some clothes, but these were insufficient to secure me from the dews of night.",
+          "normalized": "Before I had quitted your apartment, on a sensation of cold, I had covered myself with some clothes, but these were insufficient to secure me from the dews of night.",
+          "token": "quitted",
+          "phonemes": "kwɪttɛd"
+        },
+        {
+          "text": "A great fall of snow had taken place the night before, and the fields were of one uniform white; the appearance was disconsolate, and I found my feet chilled by the cold damp substance that covered the ground.",
+          "normalized": "A great fall of snow had taken place the night before, and the fields were of one uniform white, the appearance was disconsolate, and I found my feet chilled by the cold damp substance that covered the ground.",
+          "token": "disconsolate",
+          "phonemes": "dɪskɑnsɑlæt"
+        },
+        {
+          "text": "In one corner, near a small fire, sat an old man, leaning his head on his hands in a disconsolate attitude.",
+          "normalized": "In one corner, near a small fire, sat an old man, leaning his head on his hands in a disconsolate attitude.",
+          "token": "disconsolate",
+          "phonemes": "dɪskɑnsɑlæt"
+        },
+        {
+          "text": "This was the forest near Ingolstadt; and here I lay by the side of a brook resting from my fatigue, until I felt tormented by hunger and thirst.",
+          "normalized": "This was the forest near Ingolstadt, and here I lay by the side of a brook resting from my fatigue, until I felt tormented by hunger and thirst.",
+          "token": "Ingolstadt",
+          "phonemes": "ɪŋɑlstædt"
+        },
+        {
+          "text": "When they separated Felix kissed the hand of the stranger and said, 'Good night sweet Safie.' He sat up much longer, conversing with his father, and by the frequent repetition of her name I conjectured that their lovely guest was the subject of their conversation.",
+          "normalized": "When they separated Felix kissed the hand of the stranger and said, Good night sweet Safie. He sat up much longer, conversing with his father, and by the frequent repetition of her name I conjectured that their lovely guest was the subject of their conversation.",
+          "token": "Safie",
+          "phonemes": "sæfɪ"
+        },
+        {
+          "text": "When they separated Felix kissed the hand of the stranger and said, 'Good night sweet Safie.' He sat up much longer, conversing with his father, and by the frequent repetition of her name I conjectured that their lovely guest was the subject of their conversation.",
+          "normalized": "When they separated Felix kissed the hand of the stranger and said, Good night sweet Safie. He sat up much longer, conversing with his father, and by the frequent repetition of her name I conjectured that their lovely guest was the subject of their conversation.",
+          "token": "conjectured",
+          "phonemes": "kɑndʒɛktʌɹɛd"
+        },
+        {
+          "text": "He assisted her to dismount, and dismissing her guide, conducted her into the cottage.",
+          "normalized": "He assisted her to dismount, and dismissing her guide, conducted her into the cottage.",
+          "token": "dismount",
+          "phonemes": "dɪsmaʊnt"
+        },
+        {
+          "text": "Felix replied in a cheerful accent, and the old man was recommencing his music when someone tapped at the door.",
+          "normalized": "Felix replied in a cheerful accent, and the old man was recommencing his music when someone tapped at the door.",
+          "token": "recommencing",
+          "phonemes": "ɹɛkɑmmɛnkɪŋ"
+        },
+        {
+          "text": "The next morning Felix went out to his work, and after the usual occupations of Agatha were finished, the Arabian sat at the feet of the old man, and taking his guitar, played some airs so entrancingly beautiful that they at once drew tears of sorrow and delight from my eyes.",
+          "normalized": "The next morning Felix went out to his work, and after the usual occupations of Agatha were finished, the Arabian sat at the feet of the old man, and taking his guitar, played some airs so entrancingly beautiful that they at once drew tears of sorrow and delight from my eyes.",
+          "token": "entrancingly",
+          "phonemes": "ɛntɹænkɪŋlɪ"
+        },
+        {
+          "text": "Nothing could exceed the love and respect which the younger cottagers exhibited towards their venerable companion.",
+          "normalized": "Nothing could exceed the love and respect which the younger cottagers exhibited towards their venerable companion.",
+          "token": "cottagers",
+          "phonemes": "kɑttæɡɚs"
+        },
+        {
+          "text": "They often, I believe, suffered the pangs of hunger very poignantly, especially the two younger cottagers, for several times they placed food before the old man when they reserved none for themselves.",
+          "normalized": "They often, I believe, suffered the pangs of hunger very poignantly, especially the two younger cottagers, for several times they placed food before the old man when they reserved none for themselves.",
+          "token": "cottagers",
+          "phonemes": "kɑttæɡɚs"
+        },
+        {
+          "text": "He was always the saddest of the group, and even to my unpractised senses, he appeared to have suffered more deeply than his friends.",
+          "normalized": "He was always the saddest of the group, and even to my unpractised senses, he appeared to have suffered more deeply than his friends.",
+          "token": "unpractised",
+          "phonemes": "ʌnpɹæktɪsɛd"
+        },
+        {
+          "text": "When I slept or was absent, the forms of the venerable blind father, the gentle Agatha, and the excellent Felix flitted before me.",
+          "normalized": "When I slept or was absent, the forms of the venerable blind father, the gentle Agatha, and the excellent Felix flitted before me.",
+          "token": "flitted",
+          "phonemes": "flɪttɛd"
+        },
+        {
+          "text": "I conjectured, therefore, that he found on the paper signs for speech which he understood, and I ardently longed to comprehend these also; but how was that possible when I did not even understand the sounds for which they stood as signs?",
+          "normalized": "I conjectured, therefore, that he found on the paper signs for speech which he understood, and I ardently longed to comprehend these also, but how was that possible when I did not even understand the sounds for which they stood as signs?",
+          "token": "conjectured",
+          "phonemes": "kɑndʒɛktʌɹɛd"
+        },
+        {
+          "text": "This was indeed a godlike science, and I ardently desired to become acquainted with it. But I was baffled in every attempt I made for this purpose.",
+          "normalized": "This was indeed a godlike science, and I ardently desired to become acquainted with it. But I was baffled in every attempt I made for this purpose.",
+          "token": "godlike",
+          "phonemes": "ɡɑdlɪk"
+        },
+        {
+          "text": "You don't say so, would be the reply.",
+          "normalized": "You dont say so, would be the reply.",
+          "token": "dont",
+          "phonemes": "dɑnt"
+        },
+        {
+          "text": "Why, yes, didn't you know that?",
+          "normalized": "Why, yes, didnt you know that?",
+          "token": "didnt",
+          "phonemes": "dɪdnt"
+        },
+        {
+          "text": "When these things would fall upon Drouet's ears, he would straighten himself a little more stiffly and eat with solid comfort.",
+          "normalized": "When these things would fall upon Drouets ears, he would straighten himself a little more stiffly and eat with solid comfort.",
+          "token": "Drouets",
+          "phonemes": "dɹaʊɛts"
+        },
+        {
+          "text": "His preference for Fitzgerald and Moy's Adams Street place was another yard off the same cloth.",
+          "normalized": "His preference for Fitzgerald and Moys Adams Street place was another yard off the same cloth.",
+          "token": "Moys",
+          "phonemes": "mɔɪs"
+        }
+      ],
+      "language_mismatch_examples": [
+        {
+          "text": "It surprised me that what before was desert and gloomy should now bloom with the most beautiful flowers and verdure.",
+          "normalized": "It surprised me that what before was desert and gloomy should now bloom with the most beautiful flowers and verdure.",
+          "token": "verdure",
+          "phonemes": "vɛuɛ1"
+        },
+        {
+          "text": "I could mention innumerable instances which, although slight, marked the dispositions of these amiable cottagers.",
+          "normalized": "I could mention innumerable instances which, although slight, marked the dispositions of these amiable cottagers.",
+          "token": "cottagers",
+          "phonemes": "kɔaɛ1"
+        },
+        {
+          "text": "Fit habitation for gods, which, so short a time before, was bleak, damp, and unwholesome.",
+          "normalized": "Fit habitation for gods, which, so short a time before, was bleak, damp, and unwholesome.",
+          "token": "unwholesome",
+          "phonemes": "uɔɛɔɛ1"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "gi",
+          "phonemes": "z1"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "âych",
+          "phonemes": "əjk1"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "ép",
+          "phonemes": "ɛp5"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "eo",
+          "phonemes": "ɛw1"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "âu",
+          "phonemes": "əw1"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "đắp-bồ-diu",
+          "phonemes": "ɗăp5 ɓo2 ziw1"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "âych",
+          "phonemes": "əjk1"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "diu",
+          "phonemes": "ziw1"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "ét",
+          "phonemes": "ɛt5"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "âu",
+          "phonemes": "əw1"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "ép",
+          "phonemes": "ɛp5"
+        },
+        {
+          "text": "A GLITTERING NIGHT FLOWER: THE USE OF A NAME",
+          "normalized": "A GLITTERING en ai gi âych ti ép eo âu đắp-bồ-diu i a, ti âych i diu ét i âu ép A en ây em i.",
+          "token": "ây",
+          "phonemes": "əj1"
+        },
+        {
+          "text": "The many friends he met here dropped in because they craved, without, perhaps, consciously analysing it, the company, the glow, the atmosphere which they found.",
+          "normalized": "The many friends he met here dropped in because they craved, without, perhaps, consciously analysing it, the company, the glow, the atmosphere which they found.",
+          "token": "met",
+          "phonemes": "mɛt1"
+        },
+        {
+          "text": "There he leaned over the splendid bar and swallowed a glass of plain whiskey and purchased a couple of cigars, one of which he lighted. This to him represented in part high life-a fair sample of what the whole must be.",
+          "normalized": "There he leaned over the splendid bar and swallowed a glass of plain whiskey and purchased a couple of cigars, one of which he lighted. This to him represented in part high life-a fair sample of what the whole must be.",
+          "token": "life-a",
+          "phonemes": "liɛ1 aː1"
+        },
+        {
+          "text": "'Locked you up!' said Emily, with displeasure, 'Why do you permit Ludovico to lock you up?'",
+          "normalized": "Locked you up! said Emily, with displeasure, Why do you permit Ludovico to lock you up?",
+          "token": "do",
+          "phonemes": "zɔ1"
+        },
+        {
+          "text": "'Credit them, ma'amselle! why all the world could not persuade me out of them.",
+          "normalized": "Credit them, maamselle! why all the world could not persuade me out of them.",
+          "token": "maamselle",
+          "phonemes": "maaɛɛ1"
+        },
+        {
+          "text": "'And for these fool's tricks-I will soon discover by whom they are practised.'",
+          "normalized": "And for these fools tricks-I will soon discover by whom they are practised.",
+          "token": "tricks-I",
+          "phonemes": "tʂi1 i1"
+        }
+      ],
+      "malformed_examples": []
+    },
+    {
+      "corpus": "vieneu",
+      "path": "/server/tts-donglao/DATASET/raw/vieneu/metadata.csv",
+      "expected_language": "vi",
+      "sentences": 73882,
+      "characters": 7612371,
+      "word_tokens": 1749303,
+      "expected_language_tokens": 1630601,
+      "language_agreement": 0.9321432593438644,
+      "dominant_sentence_agreement": 0.7576540970737121,
+      "dictionary_tokens": 107888,
+      "rule_tokens": 1630601,
+      "oov_tokens": 10814,
+      "oov_rate": 0.006181890730193683,
+      "empty_phone_tokens": 24,
+      "malformed_phone_tokens": 24,
+      "invalid_punctuation_outputs": 0,
+      "non_idempotent_normalizations": 0,
+      "changed_by_normalization": 66348,
+      "analysis_seconds": 7.776242887601256,
+      "analysis_sentences_per_second": 9500.989239649436,
+      "latency_p50_ms": 0.053883,
+      "latency_p95_ms": 0.104222,
+      "latency_p99_ms": 0.121758,
+      "batch_seconds": 0.1972150057554245,
+      "batch_characters_per_second": 38599349.83568367,
+      "rss_peak_mb": 112.4296875,
+      "source_counts": {
+        "rules": 1630601,
+        "dictionary": 107888,
+        "oov": 10814
+      },
+      "detected_language_counts": {
+        "vi": 1630601,
+        "en": 118702
+      },
+      "top_oov": [
+        [
+          "anh",
+          1138
+        ],
+        [
+          "tuy",
+          905
+        ],
+        [
+          "trung",
+          699
+        ],
+        [
+          "hoa",
+          405
+        ],
+        [
+          "thay",
+          184
+        ],
+        [
+          "nga",
+          174
+        ],
+        [
+          "sorat",
+          158
+        ],
+        [
+          "kinh",
+          158
+        ],
+        [
+          "rintaro",
+          128
+        ],
+        [
+          "bitcoin",
+          109
+        ],
+        [
+          "sinh",
+          106
+        ],
+        [
+          "nho",
+          102
+        ],
+        [
+          "gia",
+          95
+        ],
+        [
+          "tencent",
+          91
+        ],
+        [
+          "nghe",
+          84
+        ],
+        [
+          "bezos",
+          82
+        ],
+        [
+          "thu",
+          79
+        ],
+        [
+          "nayana",
+          70
+        ],
+        [
+          "khoa",
+          66
+        ],
+        [
+          "herzl",
+          66
+        ],
+        [
+          "valjean",
+          59
+        ],
+        [
+          "herzen",
+          57
+        ],
+        [
+          "nha",
+          52
+        ],
+        [
+          "suy",
+          50
+        ],
+        [
+          "otoko",
+          50
+        ],
+        [
+          "naka",
+          49
+        ],
+        [
+          "binh",
+          46
+        ],
+        [
+          "nanozyme",
+          43
+        ],
+        [
+          "platon",
+          41
+        ],
+        [
+          "phong",
+          39
+        ]
+      ],
+      "top_language_mismatches": [
+        [
+          "ta",
+          9982
+        ],
+        [
+          "ra",
+          9525
+        ],
+        [
+          "quan",
+          4105
+        ],
+        [
+          "theo",
+          3883
+        ],
+        [
+          "qua",
+          3125
+        ],
+        [
+          "tin",
+          3001
+        ],
+        [
+          "ai",
+          2590
+        ],
+        [
+          "bao",
+          2171
+        ],
+        [
+          "sao",
+          1963
+        ],
+        [
+          "cao",
+          1787
+        ],
+        [
+          "tay",
+          1644
+        ],
+        [
+          "gian",
+          1553
+        ],
+        [
+          "mang",
+          1472
+        ],
+        [
+          "em",
+          1423
+        ],
+        [
+          "minh",
+          1319
+        ],
+        [
+          "vi",
+          1158
+        ],
+        [
+          "anh",
+          1138
+        ],
+        [
+          "doanh",
+          1038
+        ],
+        [
+          "tuy",
+          905
+        ],
+        [
+          "ung",
+          896
+        ],
+        [
+          "tim",
+          837
+        ],
+        [
+          "y",
+          810
+        ],
+        [
+          "cha",
+          809
+        ],
+        [
+          "so",
+          759
+        ],
+        [
+          "sang",
+          740
+        ],
+        [
+          "ty",
+          734
+        ],
+        [
+          "tham",
+          725
+        ],
+        [
+          "trang",
+          718
+        ],
+        [
+          "chung",
+          704
+        ],
+        [
+          "trung",
+          699
+        ]
+      ],
+      "oov_examples": [
+        {
+          "text": "Bởi tuy có thời kỳ nắm giữ quyền lực to lớn đối với số phận của Firenze, song ông ta chỉ cung cấp cho Machiavelli một đề tài để nhạo báng trong tác phẩm Quân Vương.",
+          "normalized": "bởi tuy có thời kỳ nắm giữ quyền lực to lớn đối với số phận của Firenze, song ông ta chỉ cung cấp cho Machiavelli một đề tài để nhạo báng trong tác phẩm quân vương.",
+          "token": "Firenze",
+          "phonemes": "fɪɹɛnz"
+        },
+        {
+          "text": "Tuy nhiên, kết quả ghi nhận một vài năm qua cho thấy kết luận này vẫn chưa rõ nét.",
+          "normalized": "Tuy nhiên, kết quả ghi nhận một vài năm qua cho thấy kết luận này vẫn chưa rõ nét.",
+          "token": "Tuy",
+          "phonemes": "tʌɪ"
+        },
+        {
+          "text": "Bệnh nhân của Virchow là một đầu bếp khoảng 50-60 tuổi.",
+          "normalized": "bệnh nhân của Virchow là một đầu bếp khoảng năm mươi đến sáu mươi tuổi.",
+          "token": "Virchow",
+          "phonemes": "vɪɹtʃaʊ"
+        },
+        {
+          "text": "Aristote, cha đẻ của logic và tự ghi, cho rằng hầu hết mọi người cảm giác đúng đắn hay là đạo đức không phải là sản phẩm của sự suy xét lý trí, mà chỉ đơn giản là do tập luyện và thói quen.",
+          "normalized": "Aristote, cha đẻ của logic và tự ghi, cho rằng hầu hết mọi người cảm giác đúng đắn hay là đạo đức không phải là sản phẩm của sự suy xét lý trí, mà chỉ đơn giản là do tập luyện và thói quen.",
+          "token": "Aristote",
+          "phonemes": "ɑɹɪstɑt"
+        },
+        {
+          "text": "Bitcoin ra mắt ngày 9 tháng 1 năm 2009 bởi một bí danh trên mạng là một cá nhân hay thực thể ẩn danh dưới tên gọi Satoshi Nakamoto.",
+          "normalized": "Bitcoin ra mắt ngày chín tháng một năm hai nghìn không trăm lẻ chín bởi một bí danh trên mạng là một cá nhân hay thực thể ẩn danh dưới tên gọi Satoshi Nakamoto.",
+          "token": "Bitcoin",
+          "phonemes": "bɪtkɔɪn"
+        },
+        {
+          "text": "Có người nói rằng Mothman là sinh vật ngoài trái đất, có người lại tin rằng đó là một dạng đột biến gen.",
+          "normalized": "có người nói rằng Mothman là sinh vật ngoài trái đất, có người lại tin rằng đó là một dạng đột biến gen.",
+          "token": "Mothman",
+          "phonemes": "mɑθmæn"
+        },
+        {
+          "text": "Hôm ấy, Fansipan không mây đẹp, mặt trời không ló dạng được vì sương mù và các công trình cáp treo kia thì hoạt động suốt đêm.",
+          "normalized": "hôm ấy, Fansipan không mây đẹp, mặt trời không ló dạng được vì sương mù và các công trình cáp treo kia thì hoạt động suốt đêm.",
+          "token": "Fansipan",
+          "phonemes": "fænsɪpæn"
+        },
+        {
+          "text": "Sự im lặng của nó trong vụ án Sorat với ông là lạ thường và khích lệ.",
+          "normalized": "sự im lặng của nó trong vụ án Sorat với ông là lạ thường và khích lệ.",
+          "token": "Sorat",
+          "phonemes": "sɔɹæt"
+        },
+        {
+          "text": "Vào lễ Ferragosto giữa tháng 8, các ngân hàng ở Rome đóng cửa và người Mỹ nào thiếu tiền mặt thì đành bó tay chịu chết.",
+          "normalized": "vào lễ Ferragosto giữa tháng tám, các ngân hàng ở Rome đóng cửa và người mỹ nào thiếu tiền mặt thì đành bó tay chịu chết.",
+          "token": "Ferragosto",
+          "phonemes": "fɚɹæɡɑstɑ"
+        },
+        {
+          "text": "Hầu hết những người bầu cho Trump và Brexit không hoàn toàn bác bỏ gói tự do, họ chỉ mất lòng tin chủ yếu vào phần toàn cầu hóa.",
+          "normalized": "hầu hết những người bầu cho Trump và Brexit không hoàn toàn bác bỏ gói tự do, họ chỉ mất lòng tin chủ yếu vào phần toàn cầu hóa.",
+          "token": "Brexit",
+          "phonemes": "bɹɛksɪt"
+        },
+        {
+          "text": "Valjean nói, Javert cảm thấy không vui nhưng cũng đồng ý giúp đỡ.",
+          "normalized": "Valjean nói, Javert cảm thấy không vui nhưng cũng đồng ý giúp đỡ.",
+          "token": "Valjean",
+          "phonemes": "vældʒiːn"
+        },
+        {
+          "text": "Valjean nói, Javert cảm thấy không vui nhưng cũng đồng ý giúp đỡ.",
+          "normalized": "Valjean nói, Javert cảm thấy không vui nhưng cũng đồng ý giúp đỡ.",
+          "token": "Javert",
+          "phonemes": "dʒævɚt"
+        },
+        {
+          "text": "Trong 15 năm trước Thế chiến thứ nhất, khoảng 1,3 triệu người Do Thái đã đi khỏi nước Nga.",
+          "normalized": "trong mười lăm năm trước thế chiến thứ nhất, khoảng một phẩy ba triệu người Do thái đã đi khỏi nước Nga.",
+          "token": "Nga",
+          "phonemes": "ŋæ"
+        },
+        {
+          "text": "26% trong số những người được Trung tâm Kennedy vinh danh.",
+          "normalized": "hai mươi sáu phần trăm trong số những người được Trung tâm Kennedy vinh danh.",
+          "token": "Trung",
+          "phonemes": "tɹʌŋ"
+        },
+        {
+          "text": "Thấy gia đình quá khó khăn, khi đi ông mang Sinh Khiêm theo, chỉ còn Sinh Cung ở lại với bà.",
+          "normalized": "thấy gia đình quá khó khăn, khi đi ông mang Sinh khiêm theo, chỉ còn Sinh Cung ở lại với bà.",
+          "token": "Sinh",
+          "phonemes": "sɪnh"
+        },
+        {
+          "text": "Thấy gia đình quá khó khăn, khi đi ông mang Sinh Khiêm theo, chỉ còn Sinh Cung ở lại với bà.",
+          "normalized": "thấy gia đình quá khó khăn, khi đi ông mang Sinh khiêm theo, chỉ còn Sinh Cung ở lại với bà.",
+          "token": "Sinh",
+          "phonemes": "sɪnh"
+        },
+        {
+          "text": "Thấy gia đình quá khó khăn, khi đi ông mang Sinh Khiêm theo, chỉ còn Sinh Cung ở lại với bà.",
+          "normalized": "thấy gia đình quá khó khăn, khi đi ông mang Sinh khiêm theo, chỉ còn Sinh Cung ở lại với bà.",
+          "token": "Cung",
+          "phonemes": "kʌŋ"
+        },
+        {
+          "text": "Tiến sĩ Johnson khi đó đang làm việc tại Đại học Y khoa Florida, đã dành nhiều thập kỷ nghiên cứu căn nguyên bệnh béo phì, tiểu đường, tăng huyết áp và bệnh thận.",
+          "normalized": "tiến sĩ Johnson khi đó đang làm việc tại đại học Y khoa Florida, đã dành nhiều thập kỷ nghiên cứu căn nguyên bệnh béo phì, tiểu đường, tăng huyết áp và bệnh thận.",
+          "token": "khoa",
+          "phonemes": "khoʊ"
+        },
+        {
+          "text": "Anh vừa nói, vừa khép hết hai cánh cửa lại mà móc hai hột vịt trong túi quần ra để vào cái tô trên bàn.",
+          "normalized": "Anh vừa nói, vừa khép hết hai cánh cửa lại mà móc hai hột vịt trong túi quần ra để vào cái tô trên bàn.",
+          "token": "Anh",
+          "phonemes": "ænh"
+        },
+        {
+          "text": "Những lực lượng chính trị ly tâm đang xé toạc các trung tâm quyền lực châu Âu, Hồi giáo và Trung Hoa.",
+          "normalized": "những lực lượng chính trị ly tâm đang xé toạc các trung tâm quyền lực châu âu, hồi giáo và Trung Hoa.",
+          "token": "Trung",
+          "phonemes": "tɹʌŋ"
+        }
+      ],
+      "language_mismatch_examples": [
+        {
+          "text": "Một cơn bão cát đã xảy ra, đã thấy một cơn gió lạnh giá, trời dọa mưa, xe cộ bị hỏng.",
+          "normalized": "một cơn bão cát đã xảy ra, đã thấy một cơn gió lạnh giá, trời dọa mưa, xe cộ bị hỏng.",
+          "token": "ra",
+          "phonemes": "ɹɑ"
+        },
+        {
+          "text": "Nhưng sau bữa ăn, ông trở nên nghiêm trang.",
+          "normalized": "nhưng sau bữa ăn, ông trở nên nghiêm trang.",
+          "token": "trang",
+          "phonemes": "tɹæŋ"
+        },
+        {
+          "text": "Giọng ông vang lên ngay bên tai phải của tôi, rất rõ ràng.",
+          "normalized": "giọng ông vang lên ngay bên tai phải của tôi, rất rõ ràng.",
+          "token": "vang",
+          "phonemes": "væŋ"
+        },
+        {
+          "text": "Giọng ông vang lên ngay bên tai phải của tôi, rất rõ ràng.",
+          "normalized": "giọng ông vang lên ngay bên tai phải của tôi, rất rõ ràng.",
+          "token": "tai",
+          "phonemes": "taɪ"
+        },
+        {
+          "text": "là một tác phẩm lịch sử nhắm đến nghiên cứu quá khứ và tương lai phát triển của xã hội loài người.",
+          "normalized": "là một tác phẩm lịch sử nhắm đến nghiên cứu quá khứ và tương lai phát triển của xã hội loài người.",
+          "token": "lai",
+          "phonemes": "laɪ"
+        },
+        {
+          "text": "Một sinh vật đơn bào như vi khuẩn sẽ hé lộ vô số thứ về những động vật đa bào to lớn như con người.",
+          "normalized": "một sinh vật đơn bào như vi khuẩn sẽ hé lộ vô số thứ về những động vật đa bào to lớn như con người.",
+          "token": "vi",
+          "phonemes": "vaɪ"
+        },
+        {
+          "text": "Một sinh vật đơn bào như vi khuẩn sẽ hé lộ vô số thứ về những động vật đa bào to lớn như con người.",
+          "normalized": "một sinh vật đơn bào như vi khuẩn sẽ hé lộ vô số thứ về những động vật đa bào to lớn như con người.",
+          "token": "to",
+          "phonemes": "tuː"
+        },
+        {
+          "text": "Từ đầu tới chân, tôi giống như một triệu phú đô la vừa bước ra từ sở đúc tiền.",
+          "normalized": "từ đầu tới chân, tôi giống như một triệu phú đô la vừa bước ra từ sở đúc tiền.",
+          "token": "ra",
+          "phonemes": "ɹɑ"
+        },
+        {
+          "text": "Ai mà không đồng ý cho anh nói rằng người Quảng ở Sài Gòn đi ăn mì Quảng là để tìm một chút hương vị quê nhà.",
+          "normalized": "ai mà không đồng ý cho anh nói rằng người quảng ở sài gòn đi ăn mì quảng là để tìm một chút hương vị quê nhà.",
+          "token": "ai",
+          "phonemes": "aɪ"
+        },
+        {
+          "text": "Bố Atticus nói có, nhưng là trước khi tôi ra đời kia.",
+          "normalized": "bố Atticus nói có, nhưng là trước khi tôi ra đời kia.",
+          "token": "Atticus",
+          "phonemes": "ætɪkəs"
+        },
+        {
+          "text": "Bố Atticus nói có, nhưng là trước khi tôi ra đời kia.",
+          "normalized": "bố Atticus nói có, nhưng là trước khi tôi ra đời kia.",
+          "token": "ra",
+          "phonemes": "ɹɑ"
+        },
+        {
+          "text": "Bố Atticus nói có, nhưng là trước khi tôi ra đời kia.",
+          "normalized": "bố Atticus nói có, nhưng là trước khi tôi ra đời kia.",
+          "token": "kia",
+          "phonemes": "kiːɚ"
+        },
+        {
+          "text": "Kết quả là, hầu hết những ai đã nhìn tấm hình cô gái lúc đầu thì cũng thấy cô gái trên màn hình.",
+          "normalized": "kết quả là, hầu hết những ai đã nhìn tấm hình cô gái lúc đầu thì cũng thấy cô gái trên màn hình.",
+          "token": "ai",
+          "phonemes": "aɪ"
+        },
+        {
+          "text": "Mỗi một đô la chi trả cho chi phí quảng cáo, trả lương, mua nguyên vật liệu, phân phối sản phẩm, xây dựng trang web và mọi thứ khác chúng ta làm, đều phải mang lại lợi nhuận nhiều hơn một đô la.",
+          "normalized": "mỗi một đô la chi trả cho chi phí quảng cáo, trả lương, mua nguyên vật liệu, phân phối sản phẩm, xây dựng trang web và mọi thứ khác chúng ta làm, đều phải mang lại lợi nhuận nhiều hơn một đô la.",
+          "token": "trang",
+          "phonemes": "tɹæŋ"
+        },
+        {
+          "text": "Mỗi một đô la chi trả cho chi phí quảng cáo, trả lương, mua nguyên vật liệu, phân phối sản phẩm, xây dựng trang web và mọi thứ khác chúng ta làm, đều phải mang lại lợi nhuận nhiều hơn một đô la.",
+          "normalized": "mỗi một đô la chi trả cho chi phí quảng cáo, trả lương, mua nguyên vật liệu, phân phối sản phẩm, xây dựng trang web và mọi thứ khác chúng ta làm, đều phải mang lại lợi nhuận nhiều hơn một đô la.",
+          "token": "web",
+          "phonemes": "wɛb"
+        },
+        {
+          "text": "Mỗi một đô la chi trả cho chi phí quảng cáo, trả lương, mua nguyên vật liệu, phân phối sản phẩm, xây dựng trang web và mọi thứ khác chúng ta làm, đều phải mang lại lợi nhuận nhiều hơn một đô la.",
+          "normalized": "mỗi một đô la chi trả cho chi phí quảng cáo, trả lương, mua nguyên vật liệu, phân phối sản phẩm, xây dựng trang web và mọi thứ khác chúng ta làm, đều phải mang lại lợi nhuận nhiều hơn một đô la.",
+          "token": "ta",
+          "phonemes": "tɑ"
+        },
+        {
+          "text": "Mỗi một đô la chi trả cho chi phí quảng cáo, trả lương, mua nguyên vật liệu, phân phối sản phẩm, xây dựng trang web và mọi thứ khác chúng ta làm, đều phải mang lại lợi nhuận nhiều hơn một đô la.",
+          "normalized": "mỗi một đô la chi trả cho chi phí quảng cáo, trả lương, mua nguyên vật liệu, phân phối sản phẩm, xây dựng trang web và mọi thứ khác chúng ta làm, đều phải mang lại lợi nhuận nhiều hơn một đô la.",
+          "token": "mang",
+          "phonemes": "mæŋ"
+        },
+        {
+          "text": "Wolf lại mời tới một người bạn, tên là John Bruhn, một nhà xã hội học ở Oklahoma để giúp đỡ ông.",
+          "normalized": "Wolf lại mời tới một người bạn, tên là John Bruhn, một nhà xã hội học ở Oklahoma để giúp đỡ ông.",
+          "token": "Wolf",
+          "phonemes": "wʊlf"
+        },
+        {
+          "text": "Wolf lại mời tới một người bạn, tên là John Bruhn, một nhà xã hội học ở Oklahoma để giúp đỡ ông.",
+          "normalized": "Wolf lại mời tới một người bạn, tên là John Bruhn, một nhà xã hội học ở Oklahoma để giúp đỡ ông.",
+          "token": "John",
+          "phonemes": "dʒɔn"
+        },
+        {
+          "text": "Wolf lại mời tới một người bạn, tên là John Bruhn, một nhà xã hội học ở Oklahoma để giúp đỡ ông.",
+          "normalized": "Wolf lại mời tới một người bạn, tên là John Bruhn, một nhà xã hội học ở Oklahoma để giúp đỡ ông.",
+          "token": "Bruhn",
+          "phonemes": "bɹʌn"
+        }
+      ],
+      "malformed_examples": [
+        {
+          "text": "Và chúng tôi gặp nhau ở gần đó tại quán Peet's Coffee & Tea ở Bethesda.",
+          "normalized": "và chúng tôi gặp nhau ở gần đó tại quán Peets Coffee & Tea ở Bethesda.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Vậy thì hãy bắt đầu bằng việc tìm hiểu xem những ai là cổ đông trong công ty Kane & Cabot và có ai trong số họ hứng thú với việc từ bỏ cổ phần của mình với một mức giá đáng kể so với giá gốc không?",
+          "normalized": "vậy thì hãy bắt đầu bằng việc tìm hiểu xem những ai là cổ đông trong công ty Kane & Cabot và có ai trong số họ hứng thú với việc từ bỏ cổ phần của mình với một mức giá đáng kể so với giá gốc không?",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Tại đây, bố được bổ nhiệm làm giám đốc điều hành của Travies & Co. Công ty này có mối quan hệ mật thiết với công ty Kolen & Co ở cùng toà nhà và là đối tác làm ăn của bố.",
+          "normalized": "tại đây, bố được bổ nhiệm làm giám đốc điều hành của Travies & co. công ty này có mối quan hệ mật thiết với công ty Kolen & co ở cùng toà nhà và là đối tác làm ăn của bố.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Tại đây, bố được bổ nhiệm làm giám đốc điều hành của Travies & Co. Công ty này có mối quan hệ mật thiết với công ty Kolen & Co ở cùng toà nhà và là đối tác làm ăn của bố.",
+          "normalized": "tại đây, bố được bổ nhiệm làm giám đốc điều hành của Travies & co. công ty này có mối quan hệ mật thiết với công ty Kolen & co ở cùng toà nhà và là đối tác làm ăn của bố.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Tuy nhiên, Procter & Gamble lại không quá hào hứng với ý tưởng này.",
+          "normalized": "Tuy nhiên, Procter & Gamble lại không quá hào hứng với ý tưởng này.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Khi Procter & Gamble cho người tiêu dùng xem bản phác thảo dụng cụ lau sàn mới, đại đa số đều phản đối ý tưởng này.",
+          "normalized": "Khi Procter & Gamble cho người tiêu dùng xem bản phác thảo dụng cụ lau sàn mới, đại đa số đều phản đối ý tưởng này.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Nhà biên tập Dominic Anfuso vì đã tin vào quyển sách ngay từ đầu và toàn thể đội ngũ tại Simon & Schuster về những đóng góp quý báu.",
+          "normalized": "nhà biên tập Dominic Anfuso vì đã tin vào quyển sách ngay từ đầu và toàn thể đội ngũ tại Simon & Schuster về những đóng góp quý báu.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Hơn nữa, các cuộc thử nghiệm do Procter & Gamble thực hiện đã chứng minh rằng sản phẩm mới làm sạch sàn nhà tốt hơn nhiều so với các loại giẻ lau sàn bằng bọt biển, bằng sợi hoặc bất kỳ loại cây lau sàn nào khác.",
+          "normalized": "hơn nữa, các cuộc thử nghiệm do Procter & Gamble thực hiện đã chứng minh rằng sản phẩm mới làm sạch sàn nhà tốt hơn nhiều so với các loại giẻ lau sàn bằng bọt biển, bằng sợi hoặc bất kỳ loại cây lau sàn nào khác.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Mọi người hẳn phải tò mò liệu thị trường hôm nay sẽ ra sao nếu Barnes & Noble cùng các đối thủ cạnh tranh khác phản ứng trực tiếp khi Amazon mới bắt đầu với mô hình bán sách trực tuyến.",
+          "normalized": "mọi người hẳn phải tò mò liệu thị trường hôm nay sẽ ra sao nếu Barnes & Noble cùng các đối thủ cạnh tranh khác phản ứng trực tiếp khi Amazon mới bắt đầu với mô hình bán sách trực tuyến.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Quay lại câu chuyện của tôi, năm 22 tuổi, tôi thành lập công ty thứ hai có tên Adam Khoo & Associates, là một mô hình kinh doanh cung cấp những khóa đào tạo về động lực cuộc sống và phương pháp học tập hiệu quả.",
+          "normalized": "Quay lại câu chuyện của tôi, năm hai mươi hai tuổi, tôi thành lập công ty thứ hai có tên Adam Khoo & Associates, là một mô hình kinh doanh cung cấp những khóa đào tạo về động lực cuộc sống và phương pháp học tập hiệu quả.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Procter & Gamble, được coi là IBM trong ngành sản xuất tã lót, đã đi theo sáng chế của Kimberly Clark với miếng dán tã có thể dính lại nhiều lần và giành lại được vị trí hàng đầu trên thị trường.",
+          "normalized": "Procter & Gamble, được coi là ai bi em trong ngành sản xuất tã lót, đã đi theo sáng chế của Kimberly Clark với miếng dán tã có thể dính lại nhiều lần và giành lại được vị trí hàng đầu trên thị trường.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Theo các nhà khoa học của Procter & Gamble, tờ giấy gắn trên cây gậy là một trong những dụng cụ lau sàn hiệu quả nhất từng được phát minh.",
+          "normalized": "Theo các nhà khoa học của Procter & Gamble, tờ giấy gắn trên cây gậy là một trong những dụng cụ lau sàn hiệu quả nhất từng được phát minh.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Thực ra, trong các cuộc thảo luận nhóm tập trung, sản phẩm này được cho điểm cao hơn so với bất kỳ dụng cụ làm sạch nào mà Procter & Gamble từng thử nghiệm.",
+          "normalized": "thực ra, trong các cuộc thảo luận nhóm tập trung, sản phẩm này được cho điểm cao hơn so với bất kỳ dụng cụ làm sạch nào mà Procter & Gamble từng thử nghiệm.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Sau một năm ròng rã nài nỉ, cuối cùng họ cũng thuyết phục được Procter & Gamble cho phép họ giới thiệu nguyên mẫu sản phẩm trong một nhóm thảo luận tập trung.",
+          "normalized": "sau một năm ròng rã nài nỉ, cuối cùng họ cũng thuyết phục được Procter & Gamble cho phép họ giới thiệu nguyên mẫu sản phẩm trong một nhóm thảo luận tập trung.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Procter & Gamble không có ý định làm liều với thị phần của mình dựa trên một dụng cụ mới quá khác thường mà không ai mong muốn cả.",
+          "normalized": "Procter & Gamble không có ý định làm liều với thị phần của mình dựa trên một dụng cụ mới quá khác thường mà không ai mong muốn cả.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Tôi đã nâng cấp công ty Adam Khoo & Associates,",
+          "normalized": "tôi đã nâng cấp công ty Adam Khoo & Associates.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Procter & Gamble đã đầu tư mạnh tay vào các hoạt động nghiên cứu và phát triển.",
+          "normalized": "Procter & Gamble đã đầu tư mạnh tay vào các hoạt động nghiên cứu và phát triển.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Đại diện bởi Park & Fine Literary & Media thông qua The Greyhawk Agency Ltd.",
+          "normalized": "đại diện bởi Park & Fine Literary & Media thông qua The Greyhawk Agency Ltd.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Đại diện bởi Park & Fine Literary & Media thông qua The Greyhawk Agency Ltd.",
+          "normalized": "đại diện bởi Park & Fine Literary & Media thông qua The Greyhawk Agency Ltd.",
+          "token": "&",
+          "phonemes": ""
+        },
+        {
+          "text": "Nay là trường đại học kinh tế Bryant & Stratton tại Chicago, nơi mà sau đó ông trở thành chủ tịch và giám đốc ban thương mại và quảng cáo.",
+          "normalized": "nay là trường đại học kinh tế Bryant & Stratton tại Chicago, nơi mà sau đó ông trở thành chủ tịch và giám đốc ban thương mại và quảng cáo.",
+          "token": "&",
+          "phonemes": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+[package]
+name = "donglao-g2p"
+version = "0.1.0"
+edition = "2021"
+description = "Production Vietnamese-English text normalization and G2P"
+license = "Apache-2.0"
+publish = false
+
+[lib]
+name = "_native"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+arpabet_cmudict = "2.0.0"
+once_cell = "1.19"
+pyo3 = { version = "0.20.3", features = ["abi3-py39", "extension-module"] }
+rayon = "=1.10.0"
+rayon-core = "=1.12.1"
+regex = "1.10"
+unicode-normalization = "0.1"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+opt-level = 3
+panic = "abort"
+strip = "symbols"

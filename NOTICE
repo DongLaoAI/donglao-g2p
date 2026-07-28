@@ -1,0 +1,19 @@
+donglao-g2p
+Copyright 2026 DongLao
+
+The Rust extension links third-party crates under their respective permissive
+licenses. The authoritative dependency list and exact versions are recorded in
+Cargo.lock. Release automation must attach an SBOM generated from that lockfile.
+
+CMU Pronouncing Dictionary notice
+---------------------------------
+The embedded English lexicon is generated from CMUdict 0.7b. CMUdict is
+Copyright (C) 1993-2014 Carnegie Mellon University. Use for research or
+commercial purposes is unrestricted. Carnegie Mellon University requests
+acknowledgement of its origin when the material is used or redistributed.
+
+The compile-time CMUdict parser (`arpabet_cmudict`) is distributed under the
+BSD 4-Clause license. Its copyright and license text are retained through the
+Cargo package and release SBOM.
+
+No source code, model, dictionary, or binary from sea-g2p is included.

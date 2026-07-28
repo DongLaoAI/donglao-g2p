@@ -1,0 +1,59 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.pyright/
+.ruff_cache/
+.hypothesis/
+
+# Test and coverage output
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+*.py,cover
+
+# Python environments and local configuration
+.venv/
+venv/
+env/
+ENV/
+.env
+.env.*
+!.env.example
+
+# Python packaging output
+build/
+dist/
+wheelhouse/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+
+# Rust and Maturin build output
+target/
+python/donglao_g2p/_native*.so
+python/donglao_g2p/_native*.pyd
+python/donglao_g2p/_native*.dylib
+*.profraw
+*.profdata
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+
+# Temporary files and logs
+*.log
+*.tmp
+*.temp
+.cache/
