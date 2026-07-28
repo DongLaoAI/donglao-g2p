@@ -78,7 +78,7 @@ uv pip install target/wheels/donglao_g2p-*.whl
 For development from source with uv:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/DongLaoAI/donglao-g2p.git
 cd donglao_g2p
 uv sync --dev
 uv run pytest
@@ -87,7 +87,7 @@ uv run pytest
 The equivalent pip workflow is:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/DongLaoAI/donglao-g2p.git
 cd donglao_g2p
 python -m venv .venv
 source .venv/bin/activate
