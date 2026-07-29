@@ -376,10 +376,7 @@ rights.
 
 The English dictionary is based on CMUdict 0.7b. CMUdict permits research and
 commercial use and requests acknowledgement when redistributed. Attribution is
-retained in [NOTICE](NOTICE).
-
-Exact Rust dependency versions are pinned in `Cargo.lock`. The project contains
-no source code, model, dictionary, or binary from `sea-g2p`.
+retained in [NOTICE](NOTICE). Exact Rust dependency versions are pinned in `Cargo.lock`.
 
 ## License
 
