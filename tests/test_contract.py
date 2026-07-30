@@ -3,12 +3,16 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from donglao_g2p import LexiconEntry, Pipeline
+from donglao_g2p import LexiconEntry, Pipeline, __phoneme_profile__
 
 
 @pytest.fixture(scope="module")
 def pipeline() -> Pipeline:
     return Pipeline()
+
+
+def test_phoneme_profile_is_versioned() -> None:
+    assert __phoneme_profile__ == "compact-v1"
 
 
 def test_required_contract(pipeline: Pipeline) -> None:
@@ -62,7 +66,7 @@ def test_punctuation_contract(pipeline: Pipeline) -> None:
         ("hello(world)", "hello world."),
         ("I DON'T KNOW", "I DON'T KNOW."),
         ("SCROFULA", "SCROFULA."),
-        ("Kane & Cabot", "Kane và Cabot."),
+        ("Kane & Cabot", "Kane and Cabot."),
     ],
 )
 def test_punctuation_cases(
@@ -108,6 +112,33 @@ def test_structured_expressions(pipeline: Pipeline) -> None:
     )
 
 
+def test_english_context_uses_english_verbalization(pipeline: Pipeline) -> None:
+    assert pipeline.normalize("I have 20 apples and 2 dogs.") == (
+        "I have twenty apples and two dogs."
+    )
+    assert pipeline.normalize("The price is $10.") == (
+        "The price is ten U S dollars."
+    )
+    assert pipeline.normalize("Kane & Cabot") == "Kane and Cabot."
+
+
+def test_structured_edge_cases(pipeline: Pipeline) -> None:
+    assert pipeline.normalize("Tỷ lệ 10-20%.") == (
+        "tỷ lệ mười đến hai mươi phần trăm."
+    )
+    assert pipeline.normalize("The range is 10-20%.") == (
+        "The range is ten to twenty percent."
+    )
+    assert pipeline.normalize("August 10th") == "August tenth."
+    assert pipeline.normalize("-12 độ") == "âm mười hai độ."
+    assert pipeline.normalize("Nhiệt độ -12,5°C") == (
+        "nhiệt độ âm mười hai phẩy năm độ xê."
+    )
+    assert pipeline.normalize("It is -12.5°C") == (
+        "It is negative twelve point five degrees Celsius."
+    )
+
+
 @pytest.mark.parametrize(
     ("source", "expected"),
     [
@@ -147,6 +178,11 @@ def test_decimal_style_digits() -> None:
         Pipeline(decimal_style="invalid")  # type: ignore[arg-type]
 
 
+def test_currency_feature_guard_keeps_supported_variants(pipeline: Pipeline) -> None:
+    assert pipeline.normalize("10 đ") == "mười đồng."
+    assert pipeline.normalize("10 VnD") == "mười đồng."
+
+
 def test_batch_order_and_empty(pipeline: Pipeline) -> None:
     texts = ["Hôm nay.", "", "meeting"]
     assert pipeline.normalize_batch(texts) == ["hôm nay.", "", "meeting."]
@@ -157,9 +193,43 @@ def test_batch_order_and_empty(pipeline: Pipeline) -> None:
     ]
 
 
+def test_bounded_memory_iterators(pipeline: Pipeline) -> None:
+    texts = (value for value in ["Hôm nay.", "", "meeting"])
+    assert list(pipeline.phonemize_iter(texts, batch_size=2)) == [
+        "hom1 naj1 .",
+        "",
+        "miːtɪŋ .",
+    ]
+    assert list(pipeline.normalize_iter(iter(["25 kg", "12:30"]), batch_size=1)) == [
+        "hai mươi lăm ki-lô-gam.",
+        "mười hai giờ ba mươi phút.",
+    ]
+    with pytest.raises(ValueError, match="batch_size"):
+        list(pipeline.phonemize_iter([], batch_size=0))
+
+
 def test_foreign_unicode_oov_is_not_empty(pipeline: Pipeline) -> None:
     analysis = pipeline.analyze("Ü-Tsang")
     assert all(token.phonemes for token in analysis.tokens if token.language != "punc")
+
+
+def test_unsupported_tokens_are_explicit_not_silent(pipeline: Pipeline) -> None:
+    analysis = pipeline.analyze("emoji 🙂 only")
+    emoji = next(token for token in analysis.tokens if token.token == "🙂")
+    assert emoji.phonemes == "<unk>"
+    assert "unsupported_token:🙂" in analysis.warnings
+
+
+def test_english_r_colored_vowels_follow_stress(pipeline: Pipeline) -> None:
+    assert pipeline.phonemize("word bird nurse server") == (
+        "wɜɹd bɜɹd nɜɹs sɜɹvɚ ."
+    )
+
+
+def test_alphanumeric_tokens_do_not_drop_digits(pipeline: Pipeline) -> None:
+    assert pipeline.normalize("August 10th and BMW i8") == (
+        "August tenth and BMW eye eight."
+    )
 
 
 def test_override_and_analysis() -> None:
@@ -189,6 +259,8 @@ def test_input_validation(pipeline: Pipeline) -> None:
         pipeline.normalize(1)  # type: ignore[arg-type]
     with pytest.raises(ValueError):
         Pipeline(num_threads=0)
+    with pytest.raises(ValueError, match="spoken or phonemes"):
+        LexiconEntry(spoken="foo", phonemes="fuː")
 
 
 def test_pipeline_is_thread_safe(pipeline: Pipeline) -> None:

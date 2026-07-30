@@ -5,17 +5,20 @@ mod numbers;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use g2p::{phonemize_text, Analysis, Override};
-use normalizer::{normalize_text, DecimalStyle};
+use g2p::{phonemize_only, phonemize_text, Analysis, Override};
+use normalizer::{normalize_text, prepare_spoken_overrides, DecimalStyle, PreparedSpokenOverride};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use rayon::prelude::*;
+
+const PARALLEL_BATCH_MIN: usize = 64;
 
 #[pyclass(module = "donglao_g2p._native")]
 struct NativePipeline {
     ensure_terminal: bool,
     decimal_style: DecimalStyle,
     overrides: Arc<HashMap<String, Override>>,
+    spoken_overrides: Arc<Vec<PreparedSpokenOverride>>,
     pool: Option<Arc<rayon::ThreadPool>>,
 }
 
@@ -43,7 +46,7 @@ impl NativePipeline {
                 ))
             }
         };
-        let overrides = overrides
+        let overrides: HashMap<String, Override> = overrides
             .unwrap_or_default()
             .into_iter()
             .map(|(surface, (spoken, phonemes, language, case_sensitive))| {
@@ -62,6 +65,7 @@ impl NativePipeline {
                 )
             })
             .collect();
+        let spoken_overrides = Arc::new(prepare_spoken_overrides(&overrides));
         let pool = match num_threads {
             Some(n) => Some(Arc::new(
                 rayon::ThreadPoolBuilder::new()
@@ -76,6 +80,7 @@ impl NativePipeline {
             ensure_terminal,
             decimal_style,
             overrides: Arc::new(overrides),
+            spoken_overrides,
             pool,
         })
     }
@@ -86,6 +91,7 @@ impl NativePipeline {
             self.ensure_terminal,
             self.decimal_style,
             &self.overrides,
+            &self.spoken_overrides,
         )
     }
 
@@ -93,11 +99,22 @@ impl NativePipeline {
         let ensure_terminal = self.ensure_terminal;
         let decimal_style = self.decimal_style;
         let overrides = Arc::clone(&self.overrides);
+        let spoken_overrides = Arc::clone(&self.spoken_overrides);
         let work = || {
-            texts
-                .par_iter()
-                .map(|text| normalize_text(text, ensure_terminal, decimal_style, &overrides))
-                .collect()
+            let normalize_one = |text: &String| {
+                normalize_text(
+                    text,
+                    ensure_terminal,
+                    decimal_style,
+                    &overrides,
+                    &spoken_overrides,
+                )
+            };
+            if texts.len() < PARALLEL_BATCH_MIN {
+                texts.iter().map(normalize_one).collect()
+            } else {
+                texts.par_iter().map(normalize_one).collect()
+            }
         };
         py.allow_threads(|| match &self.pool {
             Some(pool) => pool.install(work),
@@ -113,11 +130,12 @@ impl NativePipeline {
                 self.ensure_terminal,
                 self.decimal_style,
                 &self.overrides,
+                &self.spoken_overrides,
             )
         } else {
             text.to_owned()
         };
-        phonemize_text(&prepared, &self.overrides).phonemes
+        phonemize_only(&prepared, &self.overrides)
     }
 
     #[pyo3(signature = (texts, normalize=true))]
@@ -125,19 +143,27 @@ impl NativePipeline {
         let ensure_terminal = self.ensure_terminal;
         let decimal_style = self.decimal_style;
         let overrides = Arc::clone(&self.overrides);
+        let spoken_overrides = Arc::clone(&self.spoken_overrides);
         let work = || {
-            texts
-                .par_iter()
-                .map(|text| {
-                    if normalize {
-                        let normalized =
-                            normalize_text(text, ensure_terminal, decimal_style, &overrides);
-                        phonemize_text(&normalized, &overrides).phonemes
-                    } else {
-                        phonemize_text(text, &overrides).phonemes
-                    }
-                })
-                .collect()
+            let phonemize_one = |text: &String| {
+                if normalize {
+                    let normalized = normalize_text(
+                        text,
+                        ensure_terminal,
+                        decimal_style,
+                        &overrides,
+                        &spoken_overrides,
+                    );
+                    phonemize_only(&normalized, &overrides)
+                } else {
+                    phonemize_only(text, &overrides)
+                }
+            };
+            if texts.len() < PARALLEL_BATCH_MIN {
+                texts.iter().map(phonemize_one).collect()
+            } else {
+                texts.par_iter().map(phonemize_one).collect()
+            }
         };
         py.allow_threads(|| match &self.pool {
             Some(pool) => pool.install(work),
@@ -151,6 +177,7 @@ impl NativePipeline {
             self.ensure_terminal,
             self.decimal_style,
             &self.overrides,
+            &self.spoken_overrides,
         );
         let mut result = phonemize_text(&normalized, &self.overrides);
         result.input = text.to_owned();
@@ -165,5 +192,6 @@ fn _native(_py: Python<'_>, module: &PyModule) -> PyResult<()> {
     module.add_class::<Analysis>()?;
     module.add_class::<g2p::TokenAnalysis>()?;
     module.add("__version__", env!("CARGO_PKG_VERSION"))?;
+    module.add("__phoneme_profile__", "compact-v1")?;
     Ok(())
 }

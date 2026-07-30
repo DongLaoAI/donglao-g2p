@@ -137,6 +137,16 @@ Normalization covers numbers, grouped and decimal values, dates, time,
 currency, measurement units, percentages, ranges, phone numbers, URLs, email,
 versions, acronyms, Unicode punctuation, and custom spoken forms.
 
+Structured expressions use the lexical context of the input to choose an
+English or Vietnamese verbalizer. Inputs with no lexical evidence retain the
+Vietnamese default for compatibility:
+
+```text
+I have 20 apples. → I have twenty apples.
+Tôi có 20 quả táo. → tôi có hai mươi quả táo.
+20 kg → hai mươi ki-lô-gam.
+```
+
 Decimal notation is locale-aware:
 
 ```text
@@ -195,6 +205,29 @@ num_threads = available CPUs / worker processes
 
 Then benchmark inside the actual production CPU quota.
 
+For millions of records, use the bounded-memory iterators instead of building
+one very large Python list:
+
+```python
+for phones in g2p.phonemize_iter(records, batch_size=4096):
+    write_result(phones)
+
+for normalized in g2p.normalize_iter(records, batch_size=4096):
+    write_result(normalized)
+```
+
+Production tuning guidelines:
+
+- Create and warm one `Pipeline` per process; do not construct it per request.
+- Prefer batches of roughly 2,000–10,000 short sentences for offline jobs.
+  The default iterator chunk of 4,096 is a practical starting point.
+- Aggregate synchronous service requests into short micro-batches when latency
+  permits. Batches below 64 items deliberately avoid Rayon scheduling overhead.
+- With multiple process workers, divide the container CPU quota among their
+  `num_threads` values to avoid oversubscription.
+- Use `phonemize(..., normalize=False)` only when the upstream text is already
+  canonical; this skips normalization but changes the caller contract.
+
 ### Inspect language and OOV decisions
 
 ```python
@@ -209,7 +242,8 @@ for token in analysis.tokens:
 ```
 
 Token languages are `vi`, `en`, or `punc`. Unknown English words produce an
-`english_oov:<word>` warning.
+`english_oov:<word>` warning. Unsupported scripts or symbols produce `<unk>`
+and an `unsupported_token:<token>` warning instead of disappearing silently.
 
 ### Add pronunciation overrides
 
@@ -238,7 +272,8 @@ specialist vocabulary.
 
 Vietnamese output is a compact phonemic representation rather than narrow
 phonetic IPA. Predictable duration and coarticulation are left to the acoustic
-model.
+model. The current schema is identified by
+`donglao_g2p.__phoneme_profile__ == "compact-v1"`.
 
 Examples:
 
@@ -346,6 +381,12 @@ latency, and throughput:
 
 ```bash
 python evaluation/evaluate_metadata.py
+```
+
+For a streaming `language|text` debug corpus:
+
+```bash
+python evaluation/evaluate_unique.py debugs/unique.csv
 ```
 
 Text-only metadata does not contain gold phonemes and therefore cannot measure

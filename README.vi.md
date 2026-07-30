@@ -137,6 +137,16 @@ Normalization bao phủ số, số có phân nhóm và phần thập phân, ngà
 đơn vị, phần trăm, khoảng, số điện thoại, URL, email, phiên bản, acronym, dấu
 câu Unicode và custom spoken form.
 
+Cách đọc biểu thức có cấu trúc được chọn từ ngữ cảnh lexical của input. Input chỉ
+có biểu thức hoặc không đủ bằng chứng vẫn mặc định cách đọc tiếng Việt để giữ
+tính tương thích:
+
+```text
+I have 20 apples. → I have twenty apples.
+Tôi có 20 quả táo. → tôi có hai mươi quả táo.
+20 kg → hai mươi ki-lô-gam.
+```
+
 Quy tắc số nhận biết locale:
 
 ```text
@@ -194,6 +204,31 @@ num_threads = số CPU khả dụng / số worker process
 
 Sau đó benchmark trong đúng CPU quota của production.
 
+Với hàng triệu record, dùng iterator giới hạn bộ nhớ thay vì tạo một Python
+list rất lớn:
+
+```python
+for phones in g2p.phonemize_iter(records, batch_size=4096):
+    write_result(phones)
+
+for normalized in g2p.normalize_iter(records, batch_size=4096):
+    write_result(normalized)
+```
+
+Khuyến nghị khi chạy production:
+
+- Tạo và warm-up một `Pipeline` cho mỗi process; không khởi tạo lại theo từng
+  request.
+- Với offline job, ưu tiên batch khoảng 2.000–10.000 câu ngắn. Chunk mặc định
+  4.096 của iterator là điểm khởi đầu thực tế.
+- Với service đồng bộ, gom request thành micro-batch ngắn nếu latency cho phép.
+  Batch dưới 64 phần tử chủ động bỏ chi phí lập lịch Rayon.
+- Khi chạy nhiều worker process, chia CPU quota của container cho `num_threads`
+  của từng worker để tránh oversubscription.
+- Chỉ dùng `phonemize(..., normalize=False)` khi upstream đã bảo đảm text ở
+  dạng canonical; cách này bỏ qua normalization nhưng thay đổi contract của
+  caller.
+
 ### Xem quyết định ngôn ngữ và OOV
 
 ```python
@@ -208,7 +243,8 @@ for token in analysis.tokens:
 ```
 
 Nhãn ngôn ngữ là `vi`, `en` hoặc `punc`. Từ tiếng Anh ngoài từ điển sinh cảnh
-báo `english_oov:<word>`.
+báo `english_oov:<word>`. Token thuộc script hoặc ký hiệu chưa hỗ trợ sinh
+`<unk>` và cảnh báo `unsupported_token:<token>` thay vì bị âm thầm xóa.
 
 ### Thêm pronunciation override
 
@@ -237,6 +273,7 @@ chuyên ngành.
 
 Output tiếng Việt là biểu diễn phonemic gọn, không phải narrow phonetic IPA.
 Duration và coarticulation có thể dự đoán được sẽ do acoustic model học.
+Schema hiện tại có định danh `donglao_g2p.__phoneme_profile__ == "compact-v1"`.
 
 Ví dụ:
 
@@ -342,6 +379,13 @@ throughput:
 
 ```bash
 python evaluation/evaluate_metadata.py
+```
+
+Với corpus debug dạng `language|text`, evaluator streaming không giữ toàn bộ
+file trong RAM:
+
+```bash
+python evaluation/evaluate_unique.py debugs/unique.csv
 ```
 
 Metadata chỉ có text không chứa gold phoneme, vì vậy không thể đo độ chính xác

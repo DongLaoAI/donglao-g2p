@@ -29,4 +29,10 @@ def test_random_unicode_never_crashes() -> None:
     outputs = pipeline.phonemize_batch(values)
     assert len(outputs) == len(values)
     assert all(isinstance(output.encode("utf-8"), bytes) for output in outputs)
-
+    for value in values:
+        analysis = pipeline.analyze(value)
+        assert all(
+            token.phonemes
+            for token in analysis.tokens
+            if token.language != "punc"
+        )

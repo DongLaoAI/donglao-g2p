@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Iterable, Literal, Mapping, Optional, Union
+from typing import Iterable, Iterator, Literal, Mapping, Optional, Union
 
 Language = Literal["vi", "en"]
 DecimalStyle = Literal["cardinal", "digits"]
@@ -43,8 +43,19 @@ class Pipeline:
     def phonemize_batch(
         self, texts: Iterable[str], *, normalize: bool = ...
     ) -> list[str]: ...
+    def normalize_iter(
+        self, texts: Iterable[str], *, batch_size: int = ...
+    ) -> Iterator[str]: ...
+    def phonemize_iter(
+        self,
+        texts: Iterable[str],
+        *,
+        normalize: bool = ...,
+        batch_size: int = ...,
+    ) -> Iterator[str]: ...
     def analyze(self, text: str) -> Analysis: ...
 
 __version__: str
+__phoneme_profile__: str
 def normalize(text: str) -> str: ...
 def phonemize(text: str, *, normalize: bool = ...) -> str: ...

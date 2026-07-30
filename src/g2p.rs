@@ -50,25 +50,25 @@ pub fn find_override<'a>(
     overrides.get(&lower).filter(|entry| !entry.case_sensitive)
 }
 
-fn tokenize(text: &str) -> Vec<String> {
+fn tokenize(text: &str) -> Vec<&str> {
     let mut out = Vec::new();
-    let mut current = String::new();
-    for c in text.chars() {
+    let mut start = None;
+    for (index, c) in text.char_indices() {
         if matches!(c, ',' | '.') {
-            if !current.is_empty() {
-                out.push(std::mem::take(&mut current));
+            if let Some(token_start) = start.take() {
+                out.push(&text[token_start..index]);
             }
-            out.push(c.to_string());
+            out.push(&text[index..index + c.len_utf8()]);
         } else if c.is_whitespace() || c == '-' {
-            if !current.is_empty() {
-                out.push(std::mem::take(&mut current));
+            if let Some(token_start) = start.take() {
+                out.push(&text[token_start..index]);
             }
-        } else {
-            current.push(c);
+        } else if start.is_none() {
+            start = Some(index);
         }
     }
-    if !current.is_empty() {
-        out.push(current);
+    if let Some(token_start) = start {
+        out.push(&text[token_start..]);
     }
     out
 }
@@ -208,7 +208,10 @@ fn english_lexicon(word: &str) -> Option<&'static str> {
 
 pub fn is_english_dictionary_word(word: &str) -> bool {
     let lower = word.to_lowercase();
-    english_lexicon(&lower).is_some() || cmu_pronunciation(&lower).is_some()
+    english_lexicon(&lower).is_some()
+        || arpabet_cmudict::load_cmudict()
+            .get_polyphone_ref(&lower)
+            .is_some()
 }
 
 fn arpabet_to_ipa(symbols: &[&str]) -> String {
@@ -224,7 +227,8 @@ fn arpabet_to_ipa(symbols: &[&str]) -> String {
             "AW" => "aʊ",
             "AY" => "aɪ",
             "EH" => "ɛ",
-            "ER" => "ɚ",
+            "ER" if raw.ends_with('0') => "ɚ",
+            "ER" => "ɜɹ",
             "EY" => "eɪ",
             "IH" => "ɪ",
             "IY" => "iː",
@@ -267,7 +271,7 @@ fn cmu_pronunciation(word: &str) -> Option<String> {
     Some(arpabet_to_ipa(&symbols))
 }
 
-fn language_cost(token: &str, overrides: &HashMap<String, Override>) -> (f32, f32) {
+pub(crate) fn language_cost(token: &str, overrides: &HashMap<String, Override>) -> (f32, f32) {
     if let Some(entry) = find_override(token, overrides) {
         return if entry.language.eq_ignore_ascii_case("en") {
             (100.0, 0.0)
@@ -339,7 +343,7 @@ fn valid_vietnamese_syllable(word: &str) -> bool {
         })
 }
 
-fn detect_languages(tokens: &[String], overrides: &HashMap<String, Override>) -> Vec<&'static str> {
+fn detect_languages(tokens: &[&str], overrides: &HashMap<String, Override>) -> Vec<&'static str> {
     let mut result = vec!["punc"; tokens.len()];
     let mut start = 0;
     while start < tokens.len() {
@@ -362,14 +366,17 @@ fn detect_languages(tokens: &[String], overrides: &HashMap<String, Override>) ->
             continue;
         }
 
+        let emissions = indices
+            .iter()
+            .map(|&idx| language_cost(&tokens[idx], overrides))
+            .collect::<Vec<_>>();
         let mut vi_cost = 0.0f32;
         let mut en_cost = 0.0f32;
         let mut back = Vec::with_capacity(indices.len());
-        for (position, &idx) in indices.iter().enumerate() {
-            let (mut emit_vi, mut emit_en) = language_cost(&tokens[idx], overrides);
+        for position in 0..indices.len() {
+            let (mut emit_vi, mut emit_en) = emissions[position];
             if (emit_vi - emit_en).abs() < 1.0 {
-                if let Some(&next_idx) = indices.get(position + 1) {
-                    let (next_vi, next_en) = language_cost(&tokens[next_idx], overrides);
+                if let Some(&(next_vi, next_en)) = emissions.get(position + 1) {
                     if next_en - next_vi >= 4.0 {
                         emit_vi = 0.0;
                         emit_en = 3.0;
@@ -761,28 +768,65 @@ fn english_g2p(token: &str) -> (String, &'static str) {
     }
 }
 
+fn append_phones(rendered: &mut String, phones: &str) {
+    for phone in phones.split_whitespace() {
+        if !rendered.is_empty() {
+            rendered.push(' ');
+        }
+        rendered.push_str(phone);
+    }
+}
+
+pub fn phonemize_only(normalized: &str, overrides: &HashMap<String, Override>) -> String {
+    let input_tokens = tokenize(normalized);
+    let languages = detect_languages(&input_tokens, overrides);
+    let mut rendered = String::with_capacity(normalized.len().saturating_mul(2));
+    for (token, language) in input_tokens.into_iter().zip(languages) {
+        if is_punctuation(token) {
+            append_phones(&mut rendered, token);
+            continue;
+        }
+        if let Some(phones) =
+            find_override(token, overrides).and_then(|entry| entry.phonemes.as_deref())
+        {
+            append_phones(&mut rendered, phones);
+            continue;
+        }
+        let mut phones = if language == "en" {
+            english_g2p(token).0
+        } else {
+            vietnamese_g2p(token)
+        };
+        if phones.trim().is_empty() {
+            phones.push_str("<unk>");
+        }
+        append_phones(&mut rendered, &phones);
+    }
+    rendered
+}
+
 pub fn phonemize_text(normalized: &str, overrides: &HashMap<String, Override>) -> Analysis {
     let input_tokens = tokenize(normalized);
     let languages = detect_languages(&input_tokens, overrides);
     let mut tokens_out = Vec::new();
-    let mut rendered = Vec::new();
+    let mut rendered = String::with_capacity(normalized.len().saturating_mul(2));
     let mut warnings = Vec::new();
     for (token, language) in input_tokens.into_iter().zip(languages) {
-        if is_punctuation(&token) {
-            rendered.push(token.clone());
+        if is_punctuation(token) {
+            append_phones(&mut rendered, token);
             tokens_out.push(TokenAnalysis {
-                token,
+                phonemes: token.to_owned(),
                 language: "punc".to_owned(),
-                phonemes: rendered.last().unwrap().clone(),
                 source: "punctuation".to_owned(),
+                token: token.to_owned(),
             });
             continue;
         }
-        if let Some(entry) = find_override(&token, overrides) {
+        if let Some(entry) = find_override(token, overrides) {
             if let Some(phones) = &entry.phonemes {
-                rendered.extend(phones.split_whitespace().map(str::to_owned));
+                append_phones(&mut rendered, phones);
                 tokens_out.push(TokenAnalysis {
-                    token,
+                    token: token.to_owned(),
                     language: entry.language.clone(),
                     phonemes: phones.clone(),
                     source: "override".to_owned(),
@@ -790,17 +834,20 @@ pub fn phonemize_text(normalized: &str, overrides: &HashMap<String, Override>) -
                 continue;
             }
         }
-        let (phones, source) = if language == "en" {
-            english_g2p(&token)
+        let (mut phones, source) = if language == "en" {
+            english_g2p(token)
         } else {
-            (vietnamese_g2p(&token), "rules")
+            (vietnamese_g2p(token), "rules")
         };
-        if source == "oov" {
+        if phones.trim().is_empty() {
+            phones = "<unk>".to_owned();
+            warnings.push(format!("unsupported_token:{token}"));
+        } else if source == "oov" {
             warnings.push(format!("english_oov:{token}"));
         }
-        rendered.extend(phones.split_whitespace().map(str::to_owned));
+        append_phones(&mut rendered, &phones);
         tokens_out.push(TokenAnalysis {
-            token,
+            token: token.to_owned(),
             language: language.to_owned(),
             phonemes: phones,
             source: source.to_owned(),
@@ -809,7 +856,7 @@ pub fn phonemize_text(normalized: &str, overrides: &HashMap<String, Override>) -
     Analysis {
         input: String::new(),
         normalized: normalized.to_owned(),
-        phonemes: rendered.join(" "),
+        phonemes: rendered,
         tokens: tokens_out,
         warnings,
     }

@@ -7,9 +7,10 @@ processing is performed by the Rust extension in :mod:`donglao_g2p._native`.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, Literal, Mapping, Optional, Union
+from itertools import islice
+from typing import Iterable, Iterator, Literal, Mapping, Optional, Union
 
-from ._native import NativePipeline, __version__
+from ._native import NativePipeline, __phoneme_profile__, __version__
 
 Language = Literal["vi", "en"]
 DecimalStyle = Literal["cardinal", "digits"]
@@ -27,6 +28,8 @@ class LexiconEntry:
     def __post_init__(self) -> None:
         if self.spoken is None and self.phonemes is None:
             raise ValueError("LexiconEntry requires spoken or phonemes")
+        if self.spoken is not None and self.phonemes is not None:
+            raise ValueError("LexiconEntry accepts spoken or phonemes, not both")
         if self.language not in ("vi", "en"):
             raise ValueError("language must be 'vi' or 'en'")
         if self.spoken is not None and not self.spoken.strip():
@@ -107,6 +110,24 @@ class Pipeline:
         values = _materialize_texts(texts)
         return self._native.phonemize_batch(values, normalize)
 
+    def normalize_iter(
+        self, texts: Iterable[str], *, batch_size: int = 4096
+    ) -> Iterator[str]:
+        """Normalize an arbitrarily large iterable in bounded-memory chunks."""
+        for batch in _iter_batches(texts, batch_size):
+            yield from self._native.normalize_batch(batch)
+
+    def phonemize_iter(
+        self,
+        texts: Iterable[str],
+        *,
+        normalize: bool = True,
+        batch_size: int = 4096,
+    ) -> Iterator[str]:
+        """Phonemize an arbitrarily large iterable in bounded-memory chunks."""
+        for batch in _iter_batches(texts, batch_size):
+            yield from self._native.phonemize_batch(batch, normalize)
+
     def analyze(self, text: str) -> Analysis:
         """Return a trace suitable for debugging OOV and language decisions."""
         if not isinstance(text, str):
@@ -138,6 +159,18 @@ def _materialize_texts(texts: Iterable[str]) -> list[str]:
     return values
 
 
+def _iter_batches(texts: Iterable[str], batch_size: int) -> Iterator[list[str]]:
+    if isinstance(texts, str):
+        raise TypeError("batch input must be an iterable of str, not str")
+    if not isinstance(batch_size, int) or isinstance(batch_size, bool) or batch_size <= 0:
+        raise ValueError("batch_size must be a positive integer")
+    iterator = iter(texts)
+    while batch := list(islice(iterator, batch_size)):
+        if not all(isinstance(value, str) for value in batch):
+            raise TypeError("every batch item must be str")
+        yield batch
+
+
 _default_pipeline = Pipeline()
 
 
@@ -157,6 +190,7 @@ __all__ = [
     "LexiconEntry",
     "Pipeline",
     "TokenAnalysis",
+    "__phoneme_profile__",
     "__version__",
     "normalize",
     "phonemize",

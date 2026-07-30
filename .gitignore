@@ -35,6 +35,7 @@ pip-wheel-metadata/
 
 # Rust and Maturin build output
 target/
+debugs/
 python/donglao_g2p/_native*.so
 python/donglao_g2p/_native*.pyd
 python/donglao_g2p/_native*.dylib
