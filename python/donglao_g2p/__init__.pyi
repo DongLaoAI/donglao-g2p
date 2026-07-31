@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Iterable, Iterator, Literal, Mapping, Optional, Union
 
 Language = Literal["vi", "en"]
+LanguageMode = Literal["auto", "vi", "en"]
 DecimalStyle = Literal["cardinal", "digits"]
 
 @dataclass(frozen=True)
@@ -36,6 +37,7 @@ class Pipeline:
         ensure_terminal: bool = ...,
         num_threads: Optional[int] = ...,
         decimal_style: DecimalStyle = ...,
+        language: LanguageMode = ...,
     ) -> None: ...
     def normalize(self, text: str) -> str: ...
     def normalize_batch(self, texts: Iterable[str]) -> list[str]: ...

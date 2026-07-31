@@ -343,7 +343,23 @@ fn valid_vietnamese_syllable(word: &str) -> bool {
         })
 }
 
-fn detect_languages(tokens: &[&str], overrides: &HashMap<String, Override>) -> Vec<&'static str> {
+fn detect_languages(
+    tokens: &[&str],
+    overrides: &HashMap<String, Override>,
+    forced_language: Option<&'static str>,
+) -> Vec<&'static str> {
+    if let Some(language) = forced_language {
+        return tokens
+            .iter()
+            .map(|token| {
+                if is_punctuation(token) {
+                    "punc"
+                } else {
+                    language
+                }
+            })
+            .collect();
+    }
     let mut result = vec!["punc"; tokens.len()];
     let mut start = 0;
     while start < tokens.len() {
@@ -770,16 +786,20 @@ fn english_g2p(token: &str) -> (String, &'static str) {
 
 fn append_phones(rendered: &mut String, phones: &str) {
     for phone in phones.split_whitespace() {
-        if !rendered.is_empty() {
+        if !rendered.is_empty() && !is_punctuation(phone) {
             rendered.push(' ');
         }
         rendered.push_str(phone);
     }
 }
 
-pub fn phonemize_only(normalized: &str, overrides: &HashMap<String, Override>) -> String {
+pub fn phonemize_only(
+    normalized: &str,
+    overrides: &HashMap<String, Override>,
+    forced_language: Option<&'static str>,
+) -> String {
     let input_tokens = tokenize(normalized);
-    let languages = detect_languages(&input_tokens, overrides);
+    let languages = detect_languages(&input_tokens, overrides, forced_language);
     let mut rendered = String::with_capacity(normalized.len().saturating_mul(2));
     for (token, language) in input_tokens.into_iter().zip(languages) {
         if is_punctuation(token) {
@@ -805,9 +825,13 @@ pub fn phonemize_only(normalized: &str, overrides: &HashMap<String, Override>) -
     rendered
 }
 
-pub fn phonemize_text(normalized: &str, overrides: &HashMap<String, Override>) -> Analysis {
+pub fn phonemize_text(
+    normalized: &str,
+    overrides: &HashMap<String, Override>,
+    forced_language: Option<&'static str>,
+) -> Analysis {
     let input_tokens = tokenize(normalized);
-    let languages = detect_languages(&input_tokens, overrides);
+    let languages = detect_languages(&input_tokens, overrides, forced_language);
     let mut tokens_out = Vec::new();
     let mut rendered = String::with_capacity(normalized.len().saturating_mul(2));
     let mut warnings = Vec::new();
@@ -868,8 +892,8 @@ mod tests {
 
     #[test]
     fn contract_sentence() {
-        let result = phonemize_text("hôm nay tôi có meeting John.", &HashMap::new());
-        assert_eq!(result.phonemes, "hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn .");
+        let result = phonemize_text("hôm nay tôi có meeting John.", &HashMap::new(), None);
+        assert_eq!(result.phonemes, "hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn.");
     }
 
     #[test]
@@ -916,22 +940,22 @@ mod tests {
     fn viterbi_switches_without_tags() {
         let tokens = tokenize("hôm nay planning với John.");
         assert_eq!(
-            detect_languages(&tokens, &HashMap::new()),
+            detect_languages(&tokens, &HashMap::new(), None),
             vec!["vi", "vi", "en", "vi", "en", "punc"]
         );
         let tokens = tokenize("tôi đi ra theo quan.");
         assert_eq!(
-            detect_languages(&tokens, &HashMap::new()),
+            detect_languages(&tokens, &HashMap::new(), None),
             vec!["vi", "vi", "vi", "vi", "vi", "punc"]
         );
         let tokens = tokenize("I do it to be kind.");
         assert_eq!(
-            detect_languages(&tokens, &HashMap::new()),
+            detect_languages(&tokens, &HashMap::new(), None),
             vec!["en", "en", "en", "en", "en", "en", "punc"]
         );
         let tokens = tokenize("high-life.");
         assert_eq!(
-            detect_languages(&tokens, &HashMap::new()),
+            detect_languages(&tokens, &HashMap::new(), None),
             vec!["en", "en", "punc"]
         );
     }

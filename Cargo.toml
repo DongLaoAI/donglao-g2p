@@ -1,9 +1,10 @@
 [package]
 name = "donglao-g2p"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "Production Vietnamese-English text normalization and G2P"
 license = "Apache-2.0"
+repository = "https://github.com/DongLaoAI/donglao-g2p"
 publish = false
 
 [lib]

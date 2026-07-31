@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/donglao-g2p-logo.png" width="200" alt="DongLao G2P logo">
+  <img src="https://raw.githubusercontent.com/DongLaoAI/donglao-g2p/main/assets/donglao-g2p-logo.png" width="200" alt="DongLao G2P logo">
 </p>
 
 <h1 align="center">donglao-g2p</h1>
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <strong>English</strong> · <a href="README.vi.md">Tiếng Việt</a>
+  <strong>English</strong> · <a href="https://github.com/DongLaoAI/donglao-g2p/blob/main/README.vi.md">Tiếng Việt</a>
 </p>
 
 <p align="center">
@@ -25,7 +25,7 @@ automatic; input text does not require language tags.
 
 ```text
 Hôm nay tôi có meeting John.
-→ hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn .
+→ hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn.
 ```
 
 The project targets Hanoi Vietnamese and broad General American English. It is
@@ -46,8 +46,7 @@ before using generated phonemes as training labels.
 
 ## Installation
 
-Python 3.9 or newer is required. Release wheels currently target Linux x86-64
-and ARM64.
+Python 3.9 or newer is required. Release wheels currently target Linux x86-64.
 
 Install the published package with pip:
 
@@ -79,7 +78,7 @@ For development from source with uv:
 
 ```bash
 git clone https://github.com/DongLaoAI/donglao-g2p.git
-cd donglao_g2p
+cd donglao-g2p
 uv sync --dev
 uv run pytest
 ```
@@ -88,7 +87,7 @@ The equivalent pip workflow is:
 
 ```bash
 git clone https://github.com/DongLaoAI/donglao-g2p.git
-cd donglao_g2p
+cd donglao-g2p
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip maturin pytest
@@ -104,18 +103,19 @@ from donglao_g2p import Pipeline
 g2p = Pipeline()
 
 print(g2p.normalize("25 kg lúc 12:30"))
-# hai mươi lăm ki-lô-gam lúc mười hai giờ ba mươi phút.
+# hai mươi lăm ki-lô-gam lúc mười hai giờ ba mươi phút
 
 print(g2p.phonemize("Hôm nay tôi có meeting John."))
-# hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn .
+# hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn.
 ```
 
 Create one pipeline per process and reuse it:
 
 ```python
 g2p = Pipeline(
-    ensure_terminal=True,
+    ensure_terminal=False,
     decimal_style="cardinal",
+    language="auto",
     num_threads=None,
 )
 ```
@@ -128,7 +128,7 @@ g2p = Pipeline(
 
 ```python
 g2p.normalize("Giá trị là 3,14 kg")
-# giá trị là ba phẩy mười bốn ki-lô-gam.
+# giá trị là ba phẩy mười bốn ki-lô-gam
 
 g2p.normalize_batch(["25 kg", "12:30"])
 ```
@@ -136,6 +136,27 @@ g2p.normalize_batch(["25 kg", "12:30"])
 Normalization covers numbers, grouped and decimal values, dates, time,
 currency, measurement units, percentages, ranges, phone numbers, URLs, email,
 versions, acronyms, Unicode punctuation, and custom spoken forms.
+
+### Select a language
+
+Automatic sentence-context routing remains the default:
+
+```python
+Pipeline(language="auto")
+```
+
+Force one language when the caller already knows it:
+
+```python
+vi = Pipeline(language="vi")
+en = Pipeline(language="en")
+
+vi.normalize("20 kg")  # hai mươi ki-lô-gam
+en.normalize("20 kg")  # twenty kilograms
+```
+
+Forced mode applies to the entire input, including normalization and G2P.
+Do not force a language for code-switched text unless that is intentional.
 
 Structured expressions use the lexical context of the input to choose an
 English or Vietnamese verbalizer. Inputs with no lexical evidence retain the
@@ -163,14 +184,14 @@ Use digit-by-digit fractional reading for technical data:
 ```python
 digits = Pipeline(decimal_style="digits")
 digits.normalize("3.14 và 3,14")
-# ba chấm một bốn và ba phẩy một bốn.
+# ba chấm một bốn và ba phẩy một bốn
 ```
 
 ### Phonemize
 
 ```python
 g2p.phonemize("Hôm nay OpenAI có meeting.")
-# hom1 naj1 oʊpən eɪ aɪ kɔ5 miːtɪŋ .
+# hom1 naj1 oʊpən eɪ aɪ kɔ5 miːtɪŋ.
 ```
 
 Normalization is enabled by default. Disable it only for canonical,
@@ -273,7 +294,7 @@ specialist vocabulary.
 Vietnamese output is a compact phonemic representation rather than narrow
 phonetic IPA. Predictable duration and coarticulation are left to the acoustic
 model. The current schema is identified by
-`donglao_g2p.__phoneme_profile__ == "compact-v1"`.
+`donglao_g2p.__phoneme_profile__ == "compact-v2"`.
 
 Examples:
 
@@ -309,9 +330,10 @@ Public output uses only two prosodic tokens:
 | `,` | intermediate pause |
 | `.` | sentence boundary |
 
-Semicolons, colons, standalone dashes, and medial ellipses become commas.
-Question marks, exclamation marks, and terminal ellipses become periods.
-Set `ensure_terminal=False` to disable automatic terminal punctuation.
+Semicolons, colons, standalone dashes, medial ellipses, question marks, and
+exclamation marks become commas. Terminal ellipses become periods.
+Terminal punctuation is not added automatically. Set `ensure_terminal=True`
+to append a period when the input has no terminal punctuation.
 
 ## CLI
 
@@ -320,8 +342,9 @@ donglao-g2p "Hôm nay tôi có meeting John."
 donglao-g2p --normalize-only "25 kg lúc 12:30"
 donglao-g2p --analyze "Hôm nay có planning."
 donglao-g2p --decimal-style digits "3.14"
+donglao-g2p --language en "20 kg"
 donglao-g2p --no-normalize "hôm nay, tôi có meeting."
-donglao-g2p --no-terminal "xin chào"
+donglao-g2p --ensure-terminal "xin chào"
 ```
 
 The CLI reads UTF-8 from standard input when text is omitted:

@@ -113,7 +113,11 @@ def phones_are_well_formed(language: str, phonemes: str) -> bool:
 
 def valid_punctuation(phonemes: str) -> bool:
     for token in phonemes.split():
-        if any(character in token for character in ",.!?") and token not in PUNCTUATION:
+        if any(character in token[:-1] for character in ",.!?"):
+            return False
+        if token[-1:] in PUNCTUATION:
+            continue
+        if any(character in token for character in ",.!?"):
             return False
     return True
 

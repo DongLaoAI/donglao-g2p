@@ -13,24 +13,43 @@ use rayon::prelude::*;
 
 const PARALLEL_BATCH_MIN: usize = 64;
 
+#[derive(Clone, Copy)]
+enum LanguageMode {
+    Auto,
+    Vi,
+    En,
+}
+
+impl LanguageMode {
+    fn forced(self) -> Option<&'static str> {
+        match self {
+            Self::Auto => None,
+            Self::Vi => Some("vi"),
+            Self::En => Some("en"),
+        }
+    }
+}
+
 #[pyclass(module = "donglao_g2p._native")]
 struct NativePipeline {
     ensure_terminal: bool,
     decimal_style: DecimalStyle,
     overrides: Arc<HashMap<String, Override>>,
     spoken_overrides: Arc<Vec<PreparedSpokenOverride>>,
+    language: LanguageMode,
     pool: Option<Arc<rayon::ThreadPool>>,
 }
 
 #[pymethods]
 impl NativePipeline {
     #[new]
-    #[pyo3(signature = (overrides=None, ensure_terminal=true, num_threads=None, decimal_style="cardinal"))]
+    #[pyo3(signature = (overrides=None, ensure_terminal=false, num_threads=None, decimal_style="cardinal", language="auto"))]
     fn new(
         overrides: Option<HashMap<String, (Option<String>, Option<String>, String, bool)>>,
         ensure_terminal: bool,
         num_threads: Option<usize>,
         decimal_style: &str,
+        language: &str,
     ) -> PyResult<Self> {
         if matches!(num_threads, Some(0)) {
             return Err(PyValueError::new_err(
@@ -43,6 +62,16 @@ impl NativePipeline {
             _ => {
                 return Err(PyValueError::new_err(
                     "decimal_style must be 'cardinal' or 'digits'",
+                ))
+            }
+        };
+        let language = match language {
+            "auto" => LanguageMode::Auto,
+            "vi" => LanguageMode::Vi,
+            "en" => LanguageMode::En,
+            _ => {
+                return Err(PyValueError::new_err(
+                    "language must be 'auto', 'vi', or 'en'",
                 ))
             }
         };
@@ -81,6 +110,7 @@ impl NativePipeline {
             decimal_style,
             overrides: Arc::new(overrides),
             spoken_overrides,
+            language,
             pool,
         })
     }
@@ -92,6 +122,7 @@ impl NativePipeline {
             self.decimal_style,
             &self.overrides,
             &self.spoken_overrides,
+            self.language.forced(),
         )
     }
 
@@ -100,6 +131,7 @@ impl NativePipeline {
         let decimal_style = self.decimal_style;
         let overrides = Arc::clone(&self.overrides);
         let spoken_overrides = Arc::clone(&self.spoken_overrides);
+        let language = self.language.forced();
         let work = || {
             let normalize_one = |text: &String| {
                 normalize_text(
@@ -108,6 +140,7 @@ impl NativePipeline {
                     decimal_style,
                     &overrides,
                     &spoken_overrides,
+                    language,
                 )
             };
             if texts.len() < PARALLEL_BATCH_MIN {
@@ -131,11 +164,12 @@ impl NativePipeline {
                 self.decimal_style,
                 &self.overrides,
                 &self.spoken_overrides,
+                self.language.forced(),
             )
         } else {
             text.to_owned()
         };
-        phonemize_only(&prepared, &self.overrides)
+        phonemize_only(&prepared, &self.overrides, self.language.forced())
     }
 
     #[pyo3(signature = (texts, normalize=true))]
@@ -144,6 +178,7 @@ impl NativePipeline {
         let decimal_style = self.decimal_style;
         let overrides = Arc::clone(&self.overrides);
         let spoken_overrides = Arc::clone(&self.spoken_overrides);
+        let language = self.language.forced();
         let work = || {
             let phonemize_one = |text: &String| {
                 if normalize {
@@ -153,10 +188,11 @@ impl NativePipeline {
                         decimal_style,
                         &overrides,
                         &spoken_overrides,
+                        language,
                     );
-                    phonemize_only(&normalized, &overrides)
+                    phonemize_only(&normalized, &overrides, language)
                 } else {
-                    phonemize_only(text, &overrides)
+                    phonemize_only(text, &overrides, language)
                 }
             };
             if texts.len() < PARALLEL_BATCH_MIN {
@@ -178,8 +214,9 @@ impl NativePipeline {
             self.decimal_style,
             &self.overrides,
             &self.spoken_overrides,
+            self.language.forced(),
         );
-        let mut result = phonemize_text(&normalized, &self.overrides);
+        let mut result = phonemize_text(&normalized, &self.overrides, self.language.forced());
         result.input = text.to_owned();
         result.normalized = normalized;
         result
@@ -192,6 +229,6 @@ fn _native(_py: Python<'_>, module: &PyModule) -> PyResult<()> {
     module.add_class::<Analysis>()?;
     module.add_class::<g2p::TokenAnalysis>()?;
     module.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    module.add("__phoneme_profile__", "compact-v1")?;
+    module.add("__phoneme_profile__", "compact-v2")?;
     Ok(())
 }

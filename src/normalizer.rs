@@ -569,7 +569,7 @@ fn is_punc_char(c: char) -> bool {
 }
 
 fn punctuation_is_canonical(text: &str, ensure_terminal: bool) -> bool {
-    if text.is_empty() || text.trim() != text || (ensure_terminal && !text.ends_with('.')) {
+    if text.is_empty() || text.trim() != text || (ensure_terminal && !text.ends_with(['.', ','])) {
         return false;
     }
     let mut chars = text.chars().peekable();
@@ -664,7 +664,7 @@ fn normalize_punctuation(text: &str, ensure_terminal: bool, language: SpokenLang
             let run = &chars[start..i];
             let has_after = chars[i..].iter().any(|v| v.is_alphanumeric());
             let token = if run.iter().any(|v| matches!(v, '?' | '？' | '!' | '！')) {
-                '.'
+                ','
             } else {
                 let dots = run.iter().filter(|v| matches!(v, '.' | '…' | '。')).count();
                 if dots > 0 && (dots == 1 || !has_after) {
@@ -705,11 +705,8 @@ fn normalize_punctuation(text: &str, ensure_terminal: bool, language: SpokenLang
     }
     if ensure_terminal
         && !tokens.is_empty()
-        && !matches!(tokens.last().map(String::as_str), Some("."))
+        && !matches!(tokens.last().map(String::as_str), Some(".") | Some(","))
     {
-        if matches!(tokens.last().map(String::as_str), Some(",")) {
-            tokens.pop();
-        }
         tokens.push(".".to_owned());
     }
 
@@ -738,6 +735,7 @@ pub fn normalize_text(
     decimal_style: DecimalStyle,
     overrides: &HashMap<String, Override>,
     spoken_overrides: &[PreparedSpokenOverride],
+    forced_language: Option<&str>,
 ) -> String {
     if input.trim().is_empty() {
         return String::new();
@@ -746,12 +744,12 @@ pub fn normalize_text(
     text = apply_spoken_overrides(text, spoken_overrides);
     let features = normalization_features(&text);
     let has_vi_mark = text.chars().any(is_vietnamese_mark);
-    let language = if has_vi_mark || likely_unmarked_vietnamese(&text) {
-        SpokenLanguage::Vi
-    } else if features.required {
-        detect_spoken_language(&text, overrides)
-    } else {
-        SpokenLanguage::En
+    let language = match forced_language {
+        Some("vi") => SpokenLanguage::Vi,
+        Some("en") => SpokenLanguage::En,
+        _ if has_vi_mark || likely_unmarked_vietnamese(&text) => SpokenLanguage::Vi,
+        _ if features.required => detect_spoken_language(&text, overrides),
+        _ => SpokenLanguage::En,
     };
     if features.required {
         if features.has_at {
@@ -996,7 +994,14 @@ mod tests {
     use super::*;
 
     fn norm(text: &str) -> String {
-        normalize_text(text, true, DecimalStyle::Cardinal, &HashMap::new(), &[])
+        normalize_text(
+            text,
+            true,
+            DecimalStyle::Cardinal,
+            &HashMap::new(),
+            &[],
+            None,
+        )
     }
 
     #[test]
@@ -1037,6 +1042,7 @@ mod tests {
                 DecimalStyle::Digits,
                 &HashMap::new(),
                 &[],
+                None,
             ),
             "ba chấm một bốn và ba phẩy một bốn."
         );
@@ -1046,12 +1052,13 @@ mod tests {
     fn punctuation_policy() {
         assert_eq!(
             norm("Hôm nay... tôi có meeting với John!!!"),
-            "hôm nay, tôi có meeting với John."
+            "hôm nay, tôi có meeting với John,"
         );
-        assert_eq!(norm("Bạn khỏe?!"), "bạn khỏe.");
+        assert_eq!(norm("Bạn khỏe?!"), "bạn khỏe,");
+        assert_eq!(norm("Bạn khỏe? Tôi vẫn khỏe!"), "bạn khỏe, tôi vẫn khỏe,");
         assert_eq!(norm("Chờ..."), "chờ.");
         assert_eq!(norm("A; B: C"), "A, B, C.");
-        assert_eq!(norm("A！ B？ C； D： E。"), "A. B. C, D, E.");
+        assert_eq!(norm("A！ B？ C； D： E。"), "A, B, C, D, E.");
     }
 
     #[test]

@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "donglao-g2p"
-version = "0.2.0"
+version = "0.3.0"
 description = "Fast Vietnamese-English text normalization and grapheme-to-phoneme conversion"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -20,6 +20,11 @@ classifiers = [
   "Topic :: Multimedia :: Sound/Audio :: Speech",
   "Typing :: Typed",
 ]
+
+[project.urls]
+Homepage = "https://github.com/DongLaoAI/donglao-g2p"
+Repository = "https://github.com/DongLaoAI/donglao-g2p"
+Issues = "https://github.com/DongLaoAI/donglao-g2p/issues"
 
 [dependency-groups]
 dev = [

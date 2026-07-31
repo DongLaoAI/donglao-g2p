@@ -16,7 +16,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--analyze", action="store_true", help="print a JSON trace")
     parser.add_argument(
-        "--no-terminal", action="store_true", help="do not append terminal punctuation"
+        "--ensure-terminal", action="store_true", help="append terminal punctuation"
     )
     parser.add_argument(
         "--no-normalize",
@@ -29,6 +29,12 @@ def build_parser() -> argparse.ArgumentParser:
         default="cardinal",
         help="read fractional digits as a cardinal number or digit by digit",
     )
+    parser.add_argument(
+        "--language",
+        choices=("auto", "vi", "en"),
+        default="auto",
+        help="detect language automatically or force Vietnamese/English",
+    )
     return parser
 
 
@@ -36,8 +42,9 @@ def main() -> int:
     args = build_parser().parse_args()
     text = " ".join(args.text) if args.text else sys.stdin.read().strip()
     pipeline = Pipeline(
-        ensure_terminal=not args.no_terminal,
+        ensure_terminal=args.ensure_terminal,
         decimal_style=args.decimal_style,
+        language=args.language,
     )
     if args.analyze:
         print(json.dumps(asdict(pipeline.analyze(text)), ensure_ascii=False, indent=2))

@@ -8,17 +8,17 @@ from donglao_g2p import LexiconEntry, Pipeline, __phoneme_profile__
 
 @pytest.fixture(scope="module")
 def pipeline() -> Pipeline:
-    return Pipeline()
+    return Pipeline(ensure_terminal=True)
 
 
 def test_phoneme_profile_is_versioned() -> None:
-    assert __phoneme_profile__ == "compact-v1"
+    assert __phoneme_profile__ == "compact-v2"
 
 
 def test_required_contract(pipeline: Pipeline) -> None:
     assert (
         pipeline.phonemize("Hôm nay tôi có meeting John.")
-        == "hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn ."
+        == "hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn."
     )
 
 
@@ -42,18 +42,20 @@ def test_normalization_golden(
 
 def test_punctuation_contract(pipeline: Pipeline) -> None:
     text = "Hôm nay... tôi có meeting với John!!!"
-    assert pipeline.normalize(text) == "hôm nay, tôi có meeting với John."
+    assert pipeline.normalize(text) == "hôm nay, tôi có meeting với John,"
     assert (
         pipeline.phonemize(text)
-        == "hom1 naj1 , toj1 kɔ5 miːtɪŋ vəːj5 dʒɔn ."
+        == "hom1 naj1, toj1 kɔ5 miːtɪŋ vəːj5 dʒɔn,"
     )
 
 
 @pytest.mark.parametrize(
     ("source", "expected"),
     [
-        ("Bạn khỏe?!", "bạn khỏe."),
-        ("A！ B？ C； D： E。", "A. B. C, D, E."),
+        ("Bạn khỏe?!", "bạn khỏe,"),
+        ("Bạn khỏe? Tôi vẫn khỏe!", "bạn khỏe, tôi vẫn khỏe,"),
+        ("Dừng lại! Đừng đi tiếp.", "dừng lại, đừng đi tiếp."),
+        ("A！ B？ C； D： E。", "A, B, C, D, E."),
         ("Chờ... tôi", "chờ, tôi."),
         ("Chờ...", "chờ."),
         ("A; B: C", "A, B, C."),
@@ -75,14 +77,37 @@ def test_punctuation_cases(
     assert pipeline.normalize(source) == expected
 
 
-def test_no_terminal() -> None:
-    pipeline = Pipeline(ensure_terminal=False)
-    assert pipeline.normalize("xin chào") == "xin chào"
+def test_terminal_is_opt_in() -> None:
+    default = Pipeline()
+    assert default.normalize("xin chào") == "xin chào"
+    assert default.phonemize("xin chào") == "sin1 tʃaːw2"
+    assert Pipeline(ensure_terminal=True).normalize("xin chào") == "xin chào."
+
+
+def test_language_mode_controls_normalization_and_g2p() -> None:
+    auto = Pipeline(language="auto")
+    vietnamese = Pipeline(language="vi")
+    english = Pipeline(language="en")
+
+    assert auto.normalize("20 kg") == "hai mươi ki-lô-gam"
+    assert english.normalize("20 kg") == "twenty kilograms"
+    assert vietnamese.normalize("20 kg") == "hai mươi ki-lô-gam"
+    assert english.normalize_batch(["20 kg"]) == ["twenty kilograms"]
+    assert english.phonemize_batch(["20 kg"]) == [english.phonemize("20 kg")]
+    assert english.phonemize("hôm nay.", normalize=False) == "hɑm neɪ."
+
+    vi_analysis = vietnamese.analyze("Hôm nay có meeting.")
+    assert {token.language for token in vi_analysis.tokens} == {"vi", "punc"}
+    en_analysis = english.analyze("Tôi có 20 quả táo.")
+    assert {token.language for token in en_analysis.tokens} == {"en", "punc"}
+
+    with pytest.raises(ValueError, match="language"):
+        Pipeline(language="invalid")  # type: ignore[arg-type]
 
 
 def test_phonemize_normalize_flag(pipeline: Pipeline) -> None:
-    assert pipeline.phonemize("xin chào") == "sin1 tʃaːw2 ."
-    assert pipeline.phonemize("xin chào", normalize=True) == "sin1 tʃaːw2 ."
+    assert pipeline.phonemize("xin chào") == "sin1 tʃaːw2."
+    assert pipeline.phonemize("xin chào", normalize=True) == "sin1 tʃaːw2."
     assert pipeline.phonemize("xin chào", normalize=False) == "sin1 tʃaːw2"
 
 
@@ -90,11 +115,11 @@ def test_phonemize_batch_normalize_flag(pipeline: Pipeline) -> None:
     texts = ["xin chào", "hôm nay."]
     assert pipeline.phonemize_batch(texts, normalize=False) == [
         "sin1 tʃaːw2",
-        "hom1 naj1 .",
+        "hom1 naj1.",
     ]
     assert pipeline.phonemize_batch(texts) == [
-        "sin1 tʃaːw2 .",
-        "hom1 naj1 .",
+        "sin1 tʃaːw2.",
+        "hom1 naj1.",
     ]
 
 
@@ -166,11 +191,11 @@ def test_locale_aware_numbers(
 
 def test_english_brand_name(pipeline: Pipeline) -> None:
     assert pipeline.normalize("OpenAI") == "OpenAI."
-    assert pipeline.phonemize("OpenAI") == "oʊpən eɪ aɪ ."
+    assert pipeline.phonemize("OpenAI") == "oʊpən eɪ aɪ."
 
 
 def test_decimal_style_digits() -> None:
-    pipeline = Pipeline(decimal_style="digits")
+    pipeline = Pipeline(decimal_style="digits", ensure_terminal=True)
     assert pipeline.normalize("3.14 và 3,14") == (
         "ba chấm một bốn và ba phẩy một bốn."
     )
@@ -187,18 +212,18 @@ def test_batch_order_and_empty(pipeline: Pipeline) -> None:
     texts = ["Hôm nay.", "", "meeting"]
     assert pipeline.normalize_batch(texts) == ["hôm nay.", "", "meeting."]
     assert pipeline.phonemize_batch(texts) == [
-        "hom1 naj1 .",
+        "hom1 naj1.",
         "",
-        "miːtɪŋ .",
+        "miːtɪŋ.",
     ]
 
 
 def test_bounded_memory_iterators(pipeline: Pipeline) -> None:
     texts = (value for value in ["Hôm nay.", "", "meeting"])
     assert list(pipeline.phonemize_iter(texts, batch_size=2)) == [
-        "hom1 naj1 .",
+        "hom1 naj1.",
         "",
-        "miːtɪŋ .",
+        "miːtɪŋ.",
     ]
     assert list(pipeline.normalize_iter(iter(["25 kg", "12:30"]), batch_size=1)) == [
         "hai mươi lăm ki-lô-gam.",
@@ -222,7 +247,7 @@ def test_unsupported_tokens_are_explicit_not_silent(pipeline: Pipeline) -> None:
 
 def test_english_r_colored_vowels_follow_stress(pipeline: Pipeline) -> None:
     assert pipeline.phonemize("word bird nurse server") == (
-        "wɜɹd bɜɹd nɜɹs sɜɹvɚ ."
+        "wɜɹd bɜɹd nɜɹs sɜɹvɚ."
     )
 
 
@@ -240,9 +265,10 @@ def test_override_and_analysis() -> None:
             ),
             "GPU": LexiconEntry(spoken="gi pi diu", language="vi"),
             "widget": LexiconEntry(spoken="quai-dờ-jét", language="vi"),
-        }
+        },
+        ensure_terminal=True,
     )
-    assert pipeline.phonemize("DongLao.") == "dɔŋ1 laːw1 ."
+    assert pipeline.phonemize("DongLao.") == "dɔŋ1 laːw1."
     assert pipeline.normalize("GPU") == "gi pi diu."
     assert pipeline.normalize("a widget") == "a quai-dờ-jét."
     analysis = pipeline.analyze("unknowning")

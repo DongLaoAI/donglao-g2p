@@ -13,6 +13,7 @@ from typing import Iterable, Iterator, Literal, Mapping, Optional, Union
 from ._native import NativePipeline, __phoneme_profile__, __version__
 
 Language = Literal["vi", "en"]
+LanguageMode = Literal["auto", "vi", "en"]
 DecimalStyle = Literal["cardinal", "digits"]
 
 
@@ -67,9 +68,10 @@ class Pipeline:
         self,
         overrides: Optional[Mapping[str, OverrideValue]] = None,
         *,
-        ensure_terminal: bool = True,
+        ensure_terminal: bool = False,
         num_threads: Optional[int] = None,
         decimal_style: DecimalStyle = "cardinal",
+        language: LanguageMode = "auto",
     ) -> None:
         native_overrides = {}
         for surface, value in (overrides or {}).items():
@@ -83,7 +85,7 @@ class Pipeline:
                 entry.case_sensitive,
             )
         self._native = NativePipeline(
-            native_overrides, ensure_terminal, num_threads, decimal_style
+            native_overrides, ensure_terminal, num_threads, decimal_style, language
         )
 
     def normalize(self, text: str) -> str:
@@ -188,6 +190,7 @@ __all__ = [
     "Analysis",
     "DecimalStyle",
     "LexiconEntry",
+    "LanguageMode",
     "Pipeline",
     "TokenAnalysis",
     "__phoneme_profile__",

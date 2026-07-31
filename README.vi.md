@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/donglao-g2p-logo.png" width="200" alt="Logo DongLao G2P">
+  <img src="https://raw.githubusercontent.com/DongLaoAI/donglao-g2p/main/assets/donglao-g2p-logo.png" width="200" alt="Logo DongLao G2P">
 </p>
 
 <h1 align="center">donglao-g2p</h1>
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · <strong>Tiếng Việt</strong>
+  <a href="https://github.com/DongLaoAI/donglao-g2p/blob/main/README.md">English</a> · <strong>Tiếng Việt</strong>
 </p>
 
 <p align="center">
@@ -25,7 +25,7 @@ ngôn ngữ; input không cần tag.
 
 ```text
 Hôm nay tôi có meeting John.
-→ hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn .
+→ hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn.
 ```
 
 Dự án hướng đến tiếng Việt giọng Hà Nội và tiếng Anh General American dạng
@@ -46,7 +46,7 @@ của bạn trước khi dùng phoneme làm nhãn train.
 
 ## Cài đặt
 
-Yêu cầu Python 3.9 trở lên. Release wheel hiện hướng đến Linux x86-64 và ARM64.
+Yêu cầu Python 3.9 trở lên. Release wheel hiện hướng đến Linux x86-64.
 
 Cài gói đã phát hành bằng pip:
 
@@ -78,8 +78,8 @@ uv pip install target/wheels/donglao_g2p-*.whl
 Phát triển trực tiếp từ mã nguồn bằng uv:
 
 ```bash
-git clone <repository-url>
-cd donglao_g2p
+git clone https://github.com/DongLaoAI/donglao-g2p.git
+cd donglao-g2p
 uv sync --dev
 uv run pytest
 ```
@@ -87,8 +87,8 @@ uv run pytest
 Quy trình tương đương bằng pip:
 
 ```bash
-git clone <repository-url>
-cd donglao_g2p
+git clone https://github.com/DongLaoAI/donglao-g2p.git
+cd donglao-g2p
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip maturin pytest
@@ -104,18 +104,19 @@ from donglao_g2p import Pipeline
 g2p = Pipeline()
 
 print(g2p.normalize("25 kg lúc 12:30"))
-# hai mươi lăm ki-lô-gam lúc mười hai giờ ba mươi phút.
+# hai mươi lăm ki-lô-gam lúc mười hai giờ ba mươi phút
 
 print(g2p.phonemize("Hôm nay tôi có meeting John."))
-# hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn .
+# hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn.
 ```
 
 Tạo một pipeline cho mỗi process và tái sử dụng:
 
 ```python
 g2p = Pipeline(
-    ensure_terminal=True,
+    ensure_terminal=False,
     decimal_style="cardinal",
+    language="auto",
     num_threads=None,
 )
 ```
@@ -128,7 +129,7 @@ g2p = Pipeline(
 
 ```python
 g2p.normalize("Giá trị là 3,14 kg")
-# giá trị là ba phẩy mười bốn ki-lô-gam.
+# giá trị là ba phẩy mười bốn ki-lô-gam
 
 g2p.normalize_batch(["25 kg", "12:30"])
 ```
@@ -136,6 +137,27 @@ g2p.normalize_batch(["25 kg", "12:30"])
 Normalization bao phủ số, số có phân nhóm và phần thập phân, ngày giờ, tiền tệ,
 đơn vị, phần trăm, khoảng, số điện thoại, URL, email, phiên bản, acronym, dấu
 câu Unicode và custom spoken form.
+
+### Chọn ngôn ngữ
+
+Mặc định pipeline tiếp tục tự động routing theo ngữ cảnh câu:
+
+```python
+Pipeline(language="auto")
+```
+
+Ép một ngôn ngữ khi caller đã biết chắc:
+
+```python
+vi = Pipeline(language="vi")
+en = Pipeline(language="en")
+
+vi.normalize("20 kg")  # hai mươi ki-lô-gam
+en.normalize("20 kg")  # twenty kilograms
+```
+
+Chế độ ép ngôn ngữ áp dụng cho toàn bộ input, gồm cả normalization và G2P.
+Không nên ép ngôn ngữ cho câu code-switch trừ khi đó là chủ ý.
 
 Cách đọc biểu thức có cấu trúc được chọn từ ngữ cảnh lexical của input. Input chỉ
 có biểu thức hoặc không đủ bằng chứng vẫn mặc định cách đọc tiếng Việt để giữ
@@ -163,14 +185,14 @@ Với dữ liệu kỹ thuật cần đọc riêng từng chữ số:
 ```python
 digits = Pipeline(decimal_style="digits")
 digits.normalize("3.14 và 3,14")
-# ba chấm một bốn và ba phẩy một bốn.
+# ba chấm một bốn và ba phẩy một bốn
 ```
 
 ### Chuyển thành phoneme
 
 ```python
 g2p.phonemize("Hôm nay OpenAI có meeting.")
-# hom1 naj1 oʊpən eɪ aɪ kɔ5 miːtɪŋ .
+# hom1 naj1 oʊpən eɪ aɪ kɔ5 miːtɪŋ.
 ```
 
 Normalization được bật mặc định. Chỉ tắt khi input đã ở dạng canonical:
@@ -273,7 +295,7 @@ chuyên ngành.
 
 Output tiếng Việt là biểu diễn phonemic gọn, không phải narrow phonetic IPA.
 Duration và coarticulation có thể dự đoán được sẽ do acoustic model học.
-Schema hiện tại có định danh `donglao_g2p.__phoneme_profile__ == "compact-v1"`.
+Schema hiện tại có định danh `donglao_g2p.__phoneme_profile__ == "compact-v2"`.
 
 Ví dụ:
 
@@ -309,9 +331,10 @@ Public output chỉ có hai prosody token:
 | `,` | ngắt trung gian |
 | `.` | kết thúc câu |
 
-Dấu chấm phẩy, hai chấm, dash đứng độc lập và ellipsis giữa câu được đổi thành
-dấu phẩy. Dấu hỏi, cảm thán và ellipsis cuối câu được đổi thành dấu chấm. Dùng
-`ensure_terminal=False` để tắt tự động thêm dấu kết câu.
+Dấu chấm phẩy, hai chấm, dash đứng độc lập, ellipsis giữa câu, dấu hỏi và dấu
+cảm thán được đổi thành dấu phẩy. Ellipsis cuối input được đổi thành dấu chấm.
+Mặc định package không tự thêm dấu kết câu. Dùng `ensure_terminal=True` nếu
+muốn thêm dấu chấm khi input chưa có dấu kết câu.
 
 ## CLI
 
@@ -320,8 +343,9 @@ donglao-g2p "Hôm nay tôi có meeting John."
 donglao-g2p --normalize-only "25 kg lúc 12:30"
 donglao-g2p --analyze "Hôm nay có planning."
 donglao-g2p --decimal-style digits "3.14"
+donglao-g2p --language en "20 kg"
 donglao-g2p --no-normalize "hôm nay, tôi có meeting."
-donglao-g2p --no-terminal "xin chào"
+donglao-g2p --ensure-terminal "xin chào"
 ```
 
 Nếu không truyền text, CLI đọc UTF-8 từ standard input:
