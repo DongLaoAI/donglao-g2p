@@ -17,9 +17,15 @@ LanguageMode = Literal["auto", "vi", "en"]
 DecimalStyle = Literal["cardinal", "digits"]
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class LexiconEntry:
-    """An application-owned pronunciation or normalization override."""
+    """An application-owned pronunciation or normalization override.
+
+    No ``__slots__`` here, unlike the two classes below: every field has a
+    default, and a manual ``__slots__`` entry collides with the class variable
+    that a default creates. One of these is built per override at pipeline
+    construction, so it is not worth restructuring for.
+    """
 
     spoken: Optional[str] = None
     phonemes: Optional[str] = None
@@ -39,16 +45,24 @@ class LexiconEntry:
             raise ValueError("phonemes must not be empty")
 
 
-@dataclass(frozen=True, slots=True)
+# `slots=True` on the decorator would be tidier but only exists from Python
+# 3.10, and this package supports 3.9. Declaring __slots__ by hand is the
+# equivalent that works on both, and it is worth keeping: analyze() builds one
+# TokenAnalysis per token, so a bulk audit pass creates millions of them.
+@dataclass(frozen=True)
 class TokenAnalysis:
+    __slots__ = ("token", "language", "phonemes", "source")
+
     token: str
     language: Literal["vi", "en", "punc"]
     phonemes: str
     source: Literal["rules", "dictionary", "oov", "override", "punctuation"]
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class Analysis:
+    __slots__ = ("input", "normalized", "phonemes", "tokens", "warnings")
+
     input: str
     normalized: str
     phonemes: str
