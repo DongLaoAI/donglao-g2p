@@ -51,6 +51,27 @@ jobs:
           fi
           echo "version=$cargo_version" >> "$GITHUB_OUTPUT"
 
+      # PyPI accepts each filename exactly once, forever. Re-uploading a
+      # version fails per file, and because files upload one at a time that
+      # leaves a half-published release on the index — which is how 0.2.0
+      # ended up on PyPI as an aarch64-only wheel with no x86_64 and no sdist.
+      #
+      # This catches the common case of tagging a version that is already
+      # published. It CANNOT catch a filename that was uploaded and later
+      # deleted: PyPI still refuses that name but stops reporting it here.
+      # Deleting a published file therefore burns its version permanently.
+      - name: Version must not already exist on PyPI
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          curl -fsS --retry 3 https://pypi.org/pypi/donglao-g2p/json -o pypi.json \
+            || echo '{}' > pypi.json
+          if python3 -c "import json,sys; sys.exit(0 if sys.argv[1] in json.load(open('pypi.json')).get('releases',{}) else 1)" "$version"; then
+            echo "::error::donglao-g2p $version is already on PyPI. Bump to a new version — a published version can never be replaced."
+            exit 1
+          fi
+          echo "$version is free on PyPI"
+
       - run: cargo fmt --check
       - run: cargo test --locked
 
