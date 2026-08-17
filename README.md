@@ -16,7 +16,7 @@
   <img alt="Python 3.9–3.13" src="https://img.shields.io/badge/Python-3.9%E2%80%933.13-3776AB?logo=python&logoColor=white">
   <img alt="Rust" src="https://img.shields.io/badge/core-Rust-000000?logo=rust&logoColor=white">
   <img alt="Apache 2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue">
-  <img alt="Project status: alpha" src="https://img.shields.io/badge/status-alpha-f59e0b">
+  <img alt="Project status: stable" src="https://img.shields.io/badge/status-stable-3fb950">
 </p>
 
 `donglao-g2p` is a Rust-backed Python package for preparing Vietnamese,
@@ -28,8 +28,10 @@ Hôm nay tôi có meeting John.
 → hom1 naj1 toj1 kɔ5 miːtɪŋ dʒɔn.
 ```
 
-The project targets Hanoi Vietnamese and broad General American English. It is
-currently alpha: evaluate pronunciation on your own speakers and domains
+The project targets Hanoi Vietnamese and broad General American English. The
+public API and the phoneme output convention are stable from 1.0.0 on; any
+change to either is a breaking change and gets a major version. Pronunciation
+itself is a judgement call, so evaluate it on your own speakers and domains
 before using generated phonemes as training labels.
 
 ## Why donglao-g2p?

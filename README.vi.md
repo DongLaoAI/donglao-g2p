@@ -16,7 +16,7 @@
   <img alt="Python 3.9–3.13" src="https://img.shields.io/badge/Python-3.9%E2%80%933.13-3776AB?logo=python&logoColor=white">
   <img alt="Rust" src="https://img.shields.io/badge/core-Rust-000000?logo=rust&logoColor=white">
   <img alt="Apache 2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue">
-  <img alt="Trạng thái dự án: alpha" src="https://img.shields.io/badge/status-alpha-f59e0b">
+  <img alt="Trạng thái dự án: stable" src="https://img.shields.io/badge/status-stable-3fb950">
 </p>
 
 `donglao-g2p` là package Python có Rust core, dùng để chuẩn bị văn bản tiếng
@@ -29,7 +29,9 @@ Hôm nay tôi có meeting John.
 ```
 
 Dự án hướng đến tiếng Việt giọng Hà Nội và tiếng Anh General American dạng
-broad. Phiên bản hiện tại là alpha: cần đánh giá trên giọng đọc và miền dữ liệu
+broad. Từ 1.0.0, public API và quy ước output phoneme là ổn định; mọi thay đổi
+ở hai thứ này đều là breaking change và sẽ lên major version. Riêng phát âm thì
+luôn có yếu tố phán đoán, nên vẫn cần đánh giá trên giọng đọc và miền dữ liệu
 của bạn trước khi dùng phoneme làm nhãn train.
 
 ## Vì sao dùng donglao-g2p?
