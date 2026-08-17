@@ -1,6 +1,6 @@
 [package]
 name = "donglao-g2p"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 # Set by pyo3 0.29, which is the first release clearing RUSTSEC-2025-0020 and
 # RUSTSEC-2026-0177. Recorded so an older toolchain fails with a clear message.
