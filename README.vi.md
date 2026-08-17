@@ -35,7 +35,8 @@ của bạn trước khi dùng phoneme làm nhãn train.
 ## Vì sao dùng donglao-g2p?
 
 - Chuẩn hóa văn bản và G2P âm tiết tiếng Việt bằng luật.
-- Tự động định tuyến Việt–Anh dựa trên ngữ cảnh câu.
+- Tự động định tuyến Việt–Anh dựa trên ngữ cảnh câu, kèm prior tần suất corpus
+  cho những chuỗi ASCII mà cả hai ngôn ngữ đều nhận là của mình.
 - Tiếng Anh dùng CMUdict và graphone fallback cho OOV.
 - Output phonemic gọn với hậu tố thanh tiếng Việt `1–6`.
 - Custom lexicon cho dạng đọc và phoneme.
@@ -46,7 +47,9 @@ của bạn trước khi dùng phoneme làm nhãn train.
 
 ## Cài đặt
 
-Yêu cầu Python 3.9 trở lên. Release wheel hiện hướng đến Linux x86-64.
+Yêu cầu Python 3.9 trở lên. Release wheel được build cho Linux x86-64 và
+aarch64 (manylinux2014). Đây là wheel ABI3 nên một wheel cho mỗi kiến trúc là đủ
+cho mọi phiên bản Python được hỗ trợ.
 
 Cài gói đã phát hành bằng pip:
 
@@ -157,7 +160,28 @@ en.normalize("20 kg")  # twenty kilograms
 ```
 
 Chế độ ép ngôn ngữ áp dụng cho toàn bộ input, gồm cả normalization và G2P.
-Không nên ép ngôn ngữ cho câu code-switch trừ khi đó là chủ ý.
+Không nên ép ngôn ngữ cho câu code-switch trừ khi đó là chủ ý. Chế độ này cũng
+bỏ qua hoàn toàn phần routing, nên không dùng tới bất kỳ bằng chứng nào dưới đây.
+
+Ở chế độ `auto`, bộ định tuyến làm việc trên **từng token trong cả câu**, không
+phải đoán ngôn ngữ cho cả câu. Bằng chứng, mạnh trước:
+
+1. Token có dấu tiếng Việt ở bất kỳ đâu thì quyết định luôn.
+2. Với chuỗi ASCII trần vừa là âm tiết Việt hợp lệ vừa có trong CMUdict, một bảng
+   tần suất dựng sẵn quyết định. Trước đây chỉ xét việc có mặt trong từ điển nên
+   `theo` bị đọc thành `θiːoʊ` và `ba` thành tên viết tắt `biːeɪ`.
+3. Câu đã có dấu tiếng Việt sẽ kéo các token ASCII còn lưỡng lự về phía tiếng
+   Việt. Token viết hoa không ở đầu đoạn được miễn, nên `South Australia Loop` và
+   `The Velvet Rope` giữ nguyên cách đọc tiếng Anh.
+4. Còn lại thì switch cost giữ token đi cùng các token lân cận.
+
+Chỉ dấu chấm mới kết thúc một đoạn routing. Dấu phẩy trong suốt, nên từ nằm giữa
+hai dấu phẩy vẫn giữ được ngữ cảnh xung quanh:
+
+```python
+g2p.phonemize("phía đông, nam, dãy đồi.", normalize=False)
+# fiə5 ɗoŋ1, naːm1, zaj4 ɗoj2.   ("nam" vẫn là tiếng Việt)
+```
 
 Cách đọc biểu thức có cấu trúc được chọn từ ngữ cảnh lexical của input. Input chỉ
 có biểu thức hoặc không đủ bằng chứng vẫn mặc định cách đọc tiếng Việt để giữ
@@ -369,7 +393,18 @@ Unicode NFC
 Luật tiếng Việt phân tích âm đầu, âm chính, âm cuối và thanh. Pronunciation
 tiếng Anh được chuyển từ ARPAbet sang IPA. Bộ giải mã Viterbi chọn ngôn ngữ cho
 từng token dựa trên chữ viết, tính hợp lệ của âm tiết, dictionary,
-capitalization, token lân cận và language-switch cost.
+capitalization, token lân cận, bằng chứng dấu ở mức câu và language-switch cost.
+Đoạn routing chỉ bị ngắt bởi dấu chấm.
+
+Có khoảng 875 chuỗi ASCII trần đồng thời là âm tiết tiếng Việt hợp lệ và là mục
+trong CMUdict; chỉ xét việc có mặt trong từ điển thì không tách được chúng.
+`src/lang_prior.rs` giải quyết 488 chuỗi mà corpus đủ sức phân định: mỗi cost là
+tỉ lệ log tần suất đo trên 42,5 triệu token tiếng Việt và 28,7 triệu token tiếng
+Anh, scale sao cho một token có độ tin cậy trung bình không thể lật ngược một
+chuỗi token đã rõ ràng thuộc ngôn ngữ kia. Tần suất tiếng Việt tính theo **đúng
+dạng mặt chữ**, cố ý không gộp theo dấu — gộp sẽ dồn `đo`, `đó`, `độ`, `dò` vào
+`do` và kéo tiếng Anh thật sang tiếng Việt. Bảng này được sinh ra rồi compile vào
+binary; crate không kèm data file nào lúc chạy.
 
 ## Kiểm định
 
@@ -379,6 +414,14 @@ Chạy correctness suite:
 cargo test --locked
 pytest
 ```
+
+`.github/workflows/ci.yml` chạy đúng suite này ở mỗi lần push, build wheel trong
+container manylinux2014, rồi cài chính artifact đó lên Python 3.9 và 3.13 để kiểm
+chứng cam kết ABI3. Tag `v*` sẽ kích hoạt `.github/workflows/release.yml`: lặp lại
+các gate trên và thêm `cargo audit`, SBOM CycloneDX, SHA256SUMS, chữ ký cosign và
+publish lên PyPI. Tăng version bằng `scripts/bump-version.sh <version>` — script
+giữ `Cargo.toml`, `pyproject.toml`, `Cargo.lock` và `uv.lock` khớp nhau, và
+release workflow sẽ đối chiếu chúng với tag trước khi build bất cứ thứ gì.
 
 Chạy benchmark tài nguyên với 50.000 câu:
 
@@ -419,6 +462,12 @@ phát âm thực. Việc hai hệ G2P cho cùng output cũng không phải gold 
 
 - Phát âm tiếng Việt hướng đến giọng Hà Nội.
 - English OOV, tên riêng và từ mượn có thể cần override.
+- Tiếng Việt không dấu không thể đọc đúng, và routing tốt đến mấy cũng không cứu
+  được: `ban` có thể là `bàn`, `bán`, `bản` hay `bạn`, thanh điệu không suy ra
+  được từ mặt chữ. Hãy phục hồi dấu trước khi phonemize.
+- Từ mượn tiếng Việt không phải một âm tiết hợp lệ (`axit`, `oxy`, `campuchia`)
+  không qua được phép kiểm tra âm tiết, không bao giờ tới được bảng tần suất, và
+  rơi xuống nhánh OOV tiếng Anh. Dùng override cho những từ bạn thực sự cần.
 - Không thể suy ra đúng mọi số hoặc abbreviation nhập nhằng chỉ từ text.
 - Public output không biểu diễn lexical stress tiếng Anh.
 - Chính sách hai dấu câu không giữ prosody riêng của câu hỏi và cảm thán.

@@ -1,0 +1,227 @@
+name: Release
+
+# Tag-driven release: git tag v0.3.1 && git push --tags
+#
+# This is the CI counterpart of scripts/release.sh and deliberately runs the
+# same gates (tests, audit, SBOM, checksums, cosign signature). What it does
+# NOT run is evaluation/evaluate.py — that gate needs the linguist-reviewed
+# corpus pointed at by DONGLAO_G2P_EVAL_CORPUS, which is not in this repo.
+# Run scripts/release.sh locally if you want that gate before tagging.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  guard:
+    name: version + tests
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      # A tag that disagrees with the manifests would publish a version nobody
+      # can reproduce from this commit, so fail before anything is built.
+      - name: Tag must match Cargo.toml and pyproject.toml
+        id: version
+        run: |
+          set -euo pipefail
+          cargo_version=$(grep -m1 '^version = ' Cargo.toml | cut -d'"' -f2)
+          py_version=$(grep -m1 '^version = ' pyproject.toml | cut -d'"' -f2)
+          if [[ "$cargo_version" != "$py_version" ]]; then
+            echo "::error::Cargo.toml is $cargo_version but pyproject.toml is $py_version"
+            exit 1
+          fi
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            tag_version="${GITHUB_REF_NAME#v}"
+            if [[ "$tag_version" != "$cargo_version" ]]; then
+              echo "::error::tag ${GITHUB_REF_NAME} does not match manifest version $cargo_version"
+              exit 1
+            fi
+          fi
+          echo "version=$cargo_version" >> "$GITHUB_OUTPUT"
+
+      - run: cargo fmt --check
+      - run: cargo test --locked
+
+      - name: cargo audit
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+
+  build:
+    name: wheel ${{ matrix.target }}
+    needs: guard
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # README promises Linux x86-64; aarch64 is cheap to cross-build here.
+        # macOS/Windows are not listed because no wheel has ever been produced
+        # for them — the crate has no platform-specific code, so add
+        # `{ os: macos-14, target: aarch64 }` style entries and widen this job
+        # once you have actually tested one.
+        target: [x86_64, aarch64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: manylinux2014
+          args: --release --locked --out dist
+          sccache: "true"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-linux-${{ matrix.target }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  sdist:
+    name: sdist
+    needs: guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  verify:
+    name: install wheel (py${{ matrix.python }})
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheel-linux-x86_64
+          path: dist
+      - name: Install and run the suite against the release artifact
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          python -m pip install --force-reinstall dist/*.whl
+          python -m pytest
+          python benchmarks/benchmark.py
+
+  sign:
+    name: checksums + SBOM + signature
+    needs: [guard, build, sdist, verify]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Keyless cosign signing and SBOM attestation both need an OIDC token.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/download-artifact@v4
+        with:
+          path: staging
+          merge-multiple: true
+
+      - name: SHA256SUMS
+        working-directory: staging
+        run: sha256sum *.whl *.tar.gz > SHA256SUMS
+
+      - name: CycloneDX SBOM
+        run: |
+          set -euo pipefail
+          cargo install cargo-cyclonedx --locked
+          cargo cyclonedx --format json
+          # Globbed rather than named: cargo-cyclonedx derives the filename
+          # from the crate, and this crate's [lib] name (_native) differs from
+          # its package name, so the output has moved between versions.
+          shopt -s nullglob
+          sboms=(*.cdx.json)
+          if [[ ${#sboms[@]} -eq 0 ]]; then
+            echo "::error::cargo cyclonedx produced no .cdx.json"
+            exit 1
+          fi
+          cp "${sboms[@]}" staging/
+
+      - uses: sigstore/cosign-installer@v3
+      - name: Sign every artifact
+        working-directory: staging
+        run: |
+          set -euo pipefail
+          for artifact in *.whl *.tar.gz; do
+            cosign sign-blob --yes \
+              --bundle "${artifact}.sigstore.json" \
+              "$artifact"
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle
+          path: staging/*
+          if-no-files-found: error
+
+  publish:
+    name: publish to PyPI
+    needs: sign
+    runs-on: ubuntu-latest
+    # Only a real tag publishes; workflow_dispatch stops at the artifacts so
+    # you can rehearse the whole pipeline without burning a version number.
+    if: github.ref_type == 'tag'
+    environment:
+      name: pypi
+      url: https://pypi.org/p/donglao-g2p
+    permissions:
+      # PyPI Trusted Publishing — no API token stored anywhere. Configure the
+      # publisher once at https://pypi.org/manage/project/donglao-g2p/settings/publishing/
+      # with owner DongLaoAI, repo donglao-g2p, workflow release.yml, environment pypi.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-bundle
+          path: dist
+      - name: Keep only what PyPI accepts
+        run: |
+          cd dist
+          rm -f SHA256SUMS *.sigstore.json *.cdx.json
+          ls -l
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github_release:
+    name: GitHub release
+    needs: [guard, sign]
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-bundle
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ needs.guard.outputs.version }}
+          generate_release_notes: true
+          files: dist/*

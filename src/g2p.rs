@@ -77,6 +77,12 @@ fn is_punctuation(token: &str) -> bool {
     matches!(token, "," | ".")
 }
 
+/// Only a full stop ends a language segment. Commas stay transparent so a
+/// single Vietnamese word between them keeps its sentence context.
+fn is_sentence_break(token: &str) -> bool {
+    token == "."
+}
+
 fn has_vietnamese_mark(word: &str) -> bool {
     word.chars().any(|c| {
         "ăâđêôơưáàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ"
@@ -287,8 +293,15 @@ pub(crate) fn language_cost(token: &str, overrides: &HashMap<String, Override>) 
     let valid_en = is_english_dictionary_word(&lower);
     if valid_vi && valid_en {
         // ASCII collisions such as "ta", "ra", "do", "to", and "can" need
-        // sentence context. English gets a small lexical prior; the Viterbi
-        // transition cost lets surrounding marked Vietnamese override it.
+        // sentence context. Corpus frequency settles most of them outright;
+        // the rest keep a small English lexical prior and let the Viterbi
+        // transition cost carry surrounding marked Vietnamese over.
+        if let Ok(slot) =
+            crate::lang_prior::LANGUAGE_PRIOR.binary_search_by(|probe| probe.0.cmp(lower.as_str()))
+        {
+            let (_, vi, en) = crate::lang_prior::LANGUAGE_PRIOR[slot];
+            return (vi, en);
+        }
         (0.15, 0.0)
     } else if valid_vi || common_vietnamese_ascii(&lower) {
         (0.0, 6.0)
@@ -363,7 +376,7 @@ fn detect_languages(
     let mut result = vec!["punc"; tokens.len()];
     let mut start = 0;
     while start < tokens.len() {
-        while start < tokens.len() && is_punctuation(&tokens[start]) {
+        while start < tokens.len() && is_sentence_break(&tokens[start]) {
             start += 1;
         }
         if start >= tokens.len() {
@@ -371,7 +384,7 @@ fn detect_languages(
         }
         let mut indices = Vec::new();
         let mut cursor = start;
-        while cursor < tokens.len() && !is_punctuation(&tokens[cursor]) {
+        while cursor < tokens.len() && !is_sentence_break(&tokens[cursor]) {
             if !is_punctuation(&tokens[cursor]) {
                 indices.push(cursor);
             }
@@ -382,10 +395,38 @@ fn detect_languages(
             continue;
         }
 
-        let emissions = indices
+        let mut emissions = indices
             .iter()
             .map(|&idx| language_cost(&tokens[idx], overrides))
             .collect::<Vec<_>>();
+
+        // Sentence-level evidence. A segment already carrying Vietnamese
+        // diacritics makes its undecided ASCII tokens more likely Vietnamese
+        // too, which is what pulls "cho" out of "hoàng tử Joachim cho hay".
+        let marked = indices
+            .iter()
+            .filter(|&&idx| has_vietnamese_mark(&tokens[idx].to_lowercase()))
+            .count();
+        // Gated on that evidence, so an all-ASCII English sentence keeps its
+        // original scores and cannot regress. High-frequency Vietnamese
+        // spellings get the stronger pull; other undecided tokens a mild one.
+        if marked * 4 >= indices.len() {
+            for (position, (slot, &idx)) in emissions.iter_mut().zip(indices.iter()).enumerate() {
+                // A capitalised token away from the segment start is a proper
+                // noun far more often than a Vietnamese word, so leave titles
+                // like "The Velvet Rope" and "South Australia Loop" alone.
+                if position > 0 && tokens[idx].chars().next().is_some_and(char::is_uppercase) {
+                    continue;
+                }
+                if (slot.0 - slot.1).abs() < 1.0 {
+                    slot.1 += if common_vietnamese_ascii(&tokens[idx].to_lowercase()) {
+                        6.0
+                    } else {
+                        1.0
+                    };
+                }
+            }
+        }
         let mut vi_cost = 0.0f32;
         let mut en_cost = 0.0f32;
         let mut back = Vec::with_capacity(indices.len());
@@ -958,5 +999,72 @@ mod tests {
             detect_languages(&tokens, &HashMap::new(), None),
             vec!["en", "en", "punc"]
         );
+    }
+
+    fn languages_of(text: &str) -> Vec<&'static str> {
+        detect_languages(&tokenize(text), &HashMap::new(), None)
+    }
+
+    #[test]
+    fn commas_do_not_cut_language_context() {
+        // A word fenced by commas used to start its own segment with no
+        // evidence at all, so "nam" came out /næm/ and "tay" /teɪ/.
+        for text in [
+            "phía đông, nam, dãy đồi ven sông.",
+            "chứng bệnh chân, tay, miệng có thể gây đau.",
+            "những tiếng, anh, em, chúng ta.",
+        ] {
+            assert!(
+                languages_of(text).iter().all(|l| *l != "en"),
+                "comma-fenced Vietnamese fell to English in {text:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn sentence_level_vietnamese_prior_survives_a_foreign_name() {
+        assert_eq!(
+            languages_of("hoàng tử Joachim cho hay."),
+            vec!["vi", "vi", "en", "vi", "vi", "punc"]
+        );
+    }
+
+    #[test]
+    fn that_prior_leaves_capitalised_proper_nouns_alone() {
+        // "Loop" and "Australia" are valid Vietnamese syllables on paper, so
+        // the prior above would happily claim them without this guard.
+        let text = "trên đường vòng South Australia Loop, du khách có thể leo lên.";
+        let tokens = tokenize(text);
+        let languages = languages_of(text);
+        for name in ["South", "Australia", "Loop"] {
+            let index = tokens.iter().position(|t| *t == name).unwrap();
+            assert_eq!(languages[index], "en", "{name} lost its English reading");
+        }
+    }
+
+    #[test]
+    fn corpus_frequency_settles_ascii_collisions() {
+        // All three are CMUdict entries, so bare membership called them
+        // English: "ba" was even read as the initialism "B.A." (biːeɪ).
+        for (text, expected) in [("theo.", "tʰɛw1."), ("ba.", "ɓaː1."), ("cho.", "tʃɔ1.")] {
+            assert_eq!(
+                phonemize_text(text, &HashMap::new(), None).phonemes,
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn english_only_sentences_are_untouched() {
+        for text in [
+            "I do it to be kind.",
+            "The server can handle it.",
+            "We can deploy the new model to production tomorrow.",
+        ] {
+            assert!(
+                languages_of(text).iter().all(|l| *l != "vi"),
+                "English sentence drifted to Vietnamese: {text:?}"
+            );
+        }
     }
 }

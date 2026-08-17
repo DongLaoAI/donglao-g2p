@@ -1,4 +1,5 @@
 mod g2p;
+mod lang_prior;
 mod normalizer;
 mod numbers;
 

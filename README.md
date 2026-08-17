@@ -35,7 +35,8 @@ before using generated phonemes as training labels.
 ## Why donglao-g2p?
 
 - Vietnamese text normalization and rule-based syllable G2P.
-- Automatic sentence-context Vietnamese–English routing.
+- Automatic sentence-context Vietnamese–English routing, with corpus-frequency
+  priors for ASCII spellings that both languages claim.
 - CMUdict-backed English pronunciation with a graphone OOV fallback.
 - Compact phonemic output with Vietnamese tone suffixes `1–6`.
 - Custom spoken-form and phoneme lexicons.
@@ -46,7 +47,9 @@ before using generated phonemes as training labels.
 
 ## Installation
 
-Python 3.9 or newer is required. Release wheels currently target Linux x86-64.
+Python 3.9 or newer is required. Release wheels are built for Linux x86-64 and
+aarch64 (manylinux2014). They are ABI3 wheels, so one wheel per architecture
+covers every supported interpreter.
 
 Install the published package with pip:
 
@@ -157,6 +160,30 @@ en.normalize("20 kg")  # twenty kilograms
 
 Forced mode applies to the entire input, including normalization and G2P.
 Do not force a language for code-switched text unless that is intentional.
+It also bypasses routing entirely, so none of the evidence described below is
+consulted.
+
+In `auto` mode the router works per token over the whole sentence, not per
+sentence. Evidence, strongest first:
+
+1. A Vietnamese diacritic anywhere in the token decides it outright.
+2. For a bare ASCII spelling that is both a legal Vietnamese syllable and an
+   English dictionary word, a built-in frequency table decides. Dictionary
+   membership alone used to hand these to English, which is why `theo` was read
+   as `θiːoʊ` and `ba` as the initialism `biːeɪ`.
+3. A sentence already carrying Vietnamese diacritics pulls its remaining
+   undecided ASCII tokens toward Vietnamese. Capitalized tokens away from the
+   start of a segment are exempt, so `South Australia Loop` and `The Velvet
+   Rope` keep their English reading.
+4. Otherwise the switch cost keeps a token with its neighbours.
+
+Only a full stop ends a routing segment. Commas stay transparent, so a word
+fenced by them keeps the surrounding context:
+
+```python
+g2p.phonemize("phía đông, nam, dãy đồi.", normalize=False)
+# fiə5 ɗoŋ1, naːm1, zaj4 ɗoj2.   ("nam" stays Vietnamese)
+```
 
 Structured expressions use the lexical context of the input to choose an
 English or Vietnamese verbalizer. Inputs with no lexical evidence retain the
@@ -368,8 +395,19 @@ Unicode NFC
 Vietnamese rules operate on onset, nucleus, coda, and tone. English dictionary
 pronunciations are converted from ARPAbet to IPA. A Viterbi decoder selects
 Vietnamese or English for each token using orthography, syllable validity,
-dictionary membership, capitalization, neighboring tokens, and a language
-switch cost.
+dictionary membership, capitalization, neighboring tokens, sentence-level
+diacritic evidence, and a language switch cost. Routing segments are bounded by
+full stops only.
+
+Roughly 875 bare ASCII spellings are simultaneously a legal Vietnamese syllable
+and a CMUdict entry, and membership alone cannot separate them. `src/lang_prior.rs`
+resolves the 488 of those that a corpus can settle: each cost is a log frequency
+ratio measured over 42.5 million Vietnamese and 28.7 million English tokens,
+scaled so a single mid-confidence token cannot override a decisive run of the
+other language. Vietnamese counts are for the exact surface string and are
+deliberately not folded over diacritics — folding conflates `đo`, `đó`, `độ` and
+`dò` into `do` and drags genuine English toward Vietnamese. The table is
+generated and compiled in; the crate ships no runtime data files.
 
 ## Validation
 
@@ -379,6 +417,15 @@ Run the correctness suite:
 cargo test --locked
 pytest
 ```
+
+`.github/workflows/ci.yml` runs the same suite on every push, builds the wheel in
+a manylinux2014 container, and installs that exact artifact on Python 3.9 and
+3.13 to check the ABI3 claim. Tagging `v*` runs `.github/workflows/release.yml`,
+which repeats those gates and adds `cargo audit`, a CycloneDX SBOM, SHA256SUMS,
+cosign signatures, and publication to PyPI. Bump the version with
+`scripts/bump-version.sh <version>`; it keeps `Cargo.toml`, `pyproject.toml`,
+`Cargo.lock` and `uv.lock` in agreement, which the release workflow verifies
+against the tag before building anything.
 
 Run the explicit 50,000-sentence resource benchmark:
 
@@ -420,6 +467,13 @@ standard.
 
 - Vietnamese pronunciation targets the Hanoi dialect.
 - English OOV names and loanwords may require overrides.
+- Undiacriticized Vietnamese cannot be read correctly, and no amount of routing
+  fixes it: `ban` stands for `bàn`, `bán`, `bản` and `bạn`, and the tone is not
+  recoverable from the spelling. Restore diacritics before phonemizing.
+- Vietnamese loanwords that are not a single legal syllable (`axit`, `oxy`,
+  `campuchia`) fail the syllable check, never reach the frequency table, and
+  fall through to the English OOV path. Use overrides for the ones you care
+  about.
 - Ambiguous numbers and abbreviations cannot always be resolved from text.
 - English lexical stress is not represented in the public output.
 - The two-token punctuation policy does not preserve question or exclamation
