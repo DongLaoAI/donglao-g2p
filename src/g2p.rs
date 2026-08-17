@@ -11,7 +11,9 @@ pub struct Override {
     pub case_sensitive: bool,
 }
 
-#[pyclass(module = "donglao_g2p._native")]
+// skip_from_py_object: both classes are only ever returned to Python, never
+// accepted as an argument, and pyo3 is making that derive opt-in.
+#[pyclass(module = "donglao_g2p._native", skip_from_py_object)]
 #[derive(Clone, Debug)]
 pub struct TokenAnalysis {
     #[pyo3(get)]
@@ -24,7 +26,9 @@ pub struct TokenAnalysis {
     pub source: String,
 }
 
-#[pyclass(module = "donglao_g2p._native")]
+// skip_from_py_object: both classes are only ever returned to Python, never
+// accepted as an argument, and pyo3 is making that derive opt-in.
+#[pyclass(module = "donglao_g2p._native", skip_from_py_object)]
 #[derive(Clone, Debug, Default)]
 pub struct Analysis {
     #[pyo3(get)]

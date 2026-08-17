@@ -19,7 +19,9 @@ welcome.
 Requirements:
 
 - Python 3.9 or newer
-- A stable Rust toolchain
+- Rust 1.83 or newer, as recorded in `rust-version` (required by pyo3 0.29).
+  An older toolchain also cannot read the v4 `Cargo.lock`, so `--locked` builds
+  fail before compilation starts.
 - uv, or pip with `maturin` and `pytest`
 
 Using uv:

@@ -2,6 +2,9 @@
 name = "donglao-g2p"
 version = "0.2.0"
 edition = "2021"
+# Set by pyo3 0.29, which is the first release clearing RUSTSEC-2025-0020 and
+# RUSTSEC-2026-0177. Recorded so an older toolchain fails with a clear message.
+rust-version = "1.83"
 description = "Production Vietnamese-English text normalization and G2P"
 license = "Apache-2.0"
 repository = "https://github.com/DongLaoAI/donglao-g2p"
@@ -14,7 +17,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 arpabet_cmudict = "2.0.0"
 once_cell = "1.19"
-pyo3 = { version = "0.20.3", features = ["abi3-py39", "extension-module"] }
+pyo3 = { version = "0.29.2", features = ["abi3-py39", "extension-module"] }
 rayon = "=1.10.0"
 rayon-core = "=1.12.1"
 regex = "1.10"

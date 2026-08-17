@@ -150,7 +150,7 @@ impl NativePipeline {
                 texts.par_iter().map(normalize_one).collect()
             }
         };
-        py.allow_threads(|| match &self.pool {
+        py.detach(|| match &self.pool {
             Some(pool) => pool.install(work),
             None => work(),
         })
@@ -202,7 +202,7 @@ impl NativePipeline {
                 texts.par_iter().map(phonemize_one).collect()
             }
         };
-        py.allow_threads(|| match &self.pool {
+        py.detach(|| match &self.pool {
             Some(pool) => pool.install(work),
             None => work(),
         })
@@ -225,7 +225,7 @@ impl NativePipeline {
 }
 
 #[pymodule]
-fn _native(_py: Python<'_>, module: &PyModule) -> PyResult<()> {
+fn _native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<NativePipeline>()?;
     module.add_class::<Analysis>()?;
     module.add_class::<g2p::TokenAnalysis>()?;
